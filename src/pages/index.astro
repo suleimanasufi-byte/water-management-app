@@ -1,0 +1,541 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import { AuthGate } from "../components/auth/KleapAuth";
+---
+<Base
+  title="نظام إدارة مشروع المياه | الفواتير والحسابات"
+  description="نظام عربي متكامل لإدارة مشاريع مياه الشرب في اليمن: المشتركون والفواتير والعدادات والدورات والمصروفات والتقارير والنسخ الاحتياطي."
+  schema={[
+    {"@type": "SoftwareApplication", "name": "نظام إدارة مشروع المياه", "applicationCategory": "BusinessApplication", "operatingSystem": "Web", "offers": {"@type": "Offer", "price": "0", "priceCurrency": "YER"}}
+  ]}
+>
+<div dir="rtl" id="app-root" class="min-h-screen bg-background text-foreground">
+  <Header />
+  <style>.navlink{padding:.5rem .9rem;border-radius:.9rem;border:1px solid var(--border,#e5e7eb);background:var(--card,#fff);white-space:nowrap}.navlink:hover{background:#0284c7;color:#fff}.nav-add{background:linear-gradient(135deg,#0284c7,#0d9488)!important;color:#fff!important;border-color:transparent!important;box-shadow:0 2px 8px rgba(2,132,199,.35)}.nav-sep{width:1px;align-self:stretch;background:var(--border,#e5e7eb);flex:none;min-height:1.5rem}:global(.btn){padding:.6rem 1rem;border-radius:.9rem;border:1px solid var(--border,#e5e7eb);font-weight:800;background:var(--muted,#f1f5f9)}:global(.card){border:1px solid var(--border,#e5e7eb);border-radius:1rem;padding:1rem;background:var(--card,#fff)}.fld{display:block;font-weight:700;font-size:.85rem}.fld input,.fld select{width:100%;margin-top:.3rem;padding:.6rem .8rem;border-radius:.8rem;border:1px solid var(--border,#e5e7eb);background:var(--background,#fff)}:global(.inv-paper){background:#fff;color:#111;border-radius:1rem;padding:1.2rem}@media print{#print-area{display:block!important}body *{visibility:hidden}#print-area,#print-area *{visibility:visible}#print-area{position:absolute;inset:0}}</style>
+  <script is:inline>function scrollToId(id){var el=document.getElementById(id);if(el)el.scrollIntoView({behavior:'smooth',block:'start'})}</script>
+
+  <main class="max-w-7xl mx-auto px-4 pb-28 pt-6 space-y-8">
+    <!-- ===== إدخال سريع ===== -->
+    <div class="quick-actions grid grid-cols-3 gap-2 bg-background/95 backdrop-blur py-2">
+      <a href="/new-subscriber" class="rounded-2xl p-4 text-center text-white font-black shadow active:scale-95 transition" style="background:linear-gradient(135deg,#0284c7,#0d9488)" aria-label="إضافة مشترك جديد">＋<br/>مشترك جديد<br/><span class="text-[11px] font-bold opacity-80">عداد + بيانات</span></a>
+      <a href="/new-invoice" class="rounded-2xl p-4 text-center text-white font-black shadow active:scale-95 transition" style="background:linear-gradient(135deg,#0d9488,#0284c7)" aria-label="إصدار فاتورة جديدة">＋<br/>فاتورة جديدة<br/><span class="text-[11px] font-bold opacity-80">قراءة + حساب</span></a>
+      <a href="/new-expense" class="rounded-2xl p-4 text-center bg-rose-600 text-white font-black shadow active:scale-95 transition" aria-label="تسجيل مصروف جديد">＋<br/>مصروف جديد<br/><span class="text-[11px] font-bold opacity-80">صيانة + رواتب</span></a>
+    </div>
+
+
+    <!-- ===== البطل ===== -->
+    <section class="rounded-3xl p-6 md:p-10 border border-border relative" style="background:linear-gradient(135deg,#073a5c 0%,#0a6b60 100%)">
+      <div class="relative z-10">
+        <h1 class="text-3xl md:text-5xl font-black leading-tight" style="color:#ffffff;text-shadow:0 2px 12px rgba(0,0,0,.35)">نظام إدارة مشروع المياه</h1>
+        <p class="mt-3 font-medium max-w-2xl" style="color:#eaf6f3">إدارة المشتركين وقراءات العدادات بالكيلو والفواتير والتحصيل النقدي والمصروفات والدورات المحاسبية — سريع، عربي بالكامل، ويحفظ بياناتك على جهازك.</p>
+
+        <p class="mt-4 text-xs font-bold" style="color:#eaf6f3">وحدة الاستهلاك في النظام كله هي <b>كيلو</b> • العملة <b>ريال</b></p>
+      </div>
+    </section>
+
+    <!-- ===== لوحة التحكم ===== -->
+    <section id="dashboard">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="text-2xl font-black">لوحة التحكم</h2>
+        <select id="dash-cycle" onchange="renderAll()" class="px-3 py-2 rounded-xl border border-border bg-card text-sm font-bold"></select>
+      </div>
+      <div id="dash-cards" class="grid grid-cols-2 lg:grid-cols-4 gap-3"></div>
+      <div class="grid md:grid-cols-2 gap-3 mt-3">
+        <div class="rounded-3xl border border-border bg-card p-5">
+          <h3 class="font-black mb-3">التحصيل مقابل المصروفات (ريال)</h3>
+          <div id="bar-chart" class="space-y-2"></div>
+        </div>
+        <div class="rounded-3xl border border-border bg-card p-5">
+          <h3 class="font-black mb-3">الفواتير حسب حالة العداد</h3>
+          <div id="meter-chart" class="flex flex-wrap gap-2"></div>
+          <h3 class="font-black mt-5 mb-2">أحدث الفواتير</h3>
+          <div id="dash-latest" class="space-y-2 text-sm"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== المشتركون ===== -->
+    <section id="subscribers" class="rounded-3xl border border-border bg-card p-5 md:p-7">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <h2 class="text-2xl font-black">المشتركون <span id="sub-count" class="text-sm font-bold text-muted-foreground"></span></h2>
+        <button onclick="openSubModal()" class="px-4 py-2.5 rounded-2xl text-white font-black" style="background:linear-gradient(135deg,#0284c7,#0d9488)">＋ مشترك جديد</button>
+      </div>
+      <div class="grid md:grid-cols-4 gap-2 mb-4">
+        <input id="sub-search" oninput="renderSubs()" placeholder="بحث بالاسم أو رقم العداد أو الهاتف…" class="md:col-span-2 px-4 py-2.5 rounded-2xl border border-border bg-background font-medium" />
+        <select id="sub-filter-type" onchange="renderSubs()" class="px-3 py-2.5 rounded-2xl border border-border bg-background font-bold">
+          <option value="">كل الأنواع</option><option>منزلي</option><option>تجاري</option><option>منزلي تجاري</option>
+        </select>
+        <select id="sub-filter-active" onchange="renderSubs()" class="px-3 py-2.5 rounded-2xl border border-border bg-background font-bold">
+          <option value="">نشط + موقوف</option><option value="1">نشط فقط</option><option value="0">موقوف فقط</option>
+        </select>
+      </div>
+      <div id="sub-list" class="grid md:grid-cols-2 gap-3"></div>
+    </section>
+
+    <!-- ===== الفواتير ===== -->
+    <section id="invoices" class="rounded-3xl border border-border bg-card p-5 md:p-7">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <h2 class="text-2xl font-black">الفواتير</h2>
+        <button onclick="openInvModal()" class="px-4 py-2.5 rounded-2xl text-white font-black" style="background:linear-gradient(135deg,#0284c7,#0d9488)">＋ فاتورة جديدة</button>
+      </div>
+      <div class="rounded-2xl border border-amber-500/40 bg-amber-500/10 p-3 text-sm font-bold mb-4">الترحيل تلقائي: القراءة السابقة والمتأخرات والرصيد تُجلب من آخر فاتورة للمشترك. إدخال القراءة أو المبلغ يعيد الحساب فورًا.</div>
+      <div class="grid md:grid-cols-4 gap-2 mb-4">
+        <input id="inv-search" oninput="renderInvs()" placeholder="بحث برقم الفاتورة أو اسم المشترك…" class="md:col-span-2 px-4 py-2.5 rounded-2xl border border-border bg-background" />
+        <select id="inv-filter-cycle" onchange="renderInvs()" class="px-3 py-2.5 rounded-2xl border border-border bg-background font-bold"></select>
+        <select id="inv-filter-status" onchange="renderInvs()" class="px-3 py-2.5 rounded-2xl border border-border bg-background font-bold">
+          <option value="">كل الحالات</option><option>شغال</option><option>خارب - متوقف</option><option>بدون عداد</option><option>خارب - عد عكسي</option>
+        </select>
+      </div>
+      <div id="inv-list" class="space-y-3"></div>
+    </section>
+
+    <!-- ===== المصروفات ===== -->
+    <section id="expenses" class="rounded-3xl border border-border bg-card p-5 md:p-7">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+        <h2 class="text-2xl font-black">المصروفات</h2>
+        <button onclick="openExpModal()" class="px-4 py-2.5 rounded-2xl bg-rose-600 text-white font-black">＋ مصروف جديد</button>
+      </div>
+      <div id="exp-cats" class="flex flex-wrap gap-2 mb-4"><span class="px-3 py-1.5 rounded-full border border-border text-xs font-black">صيانة</span><span class="px-3 py-1.5 rounded-full border border-border text-xs font-black">قطع غيار</span><span class="px-3 py-1.5 rounded-full border border-border text-xs font-black">زيوت</span><span class="px-3 py-1.5 rounded-full border border-border text-xs font-black">وقود</span><span class="px-3 py-1.5 rounded-full border border-border text-xs font-black">صيانة الشبكة</span><span class="px-3 py-1.5 rounded-full border border-border text-xs font-black">رواتب</span><span class="px-3 py-1.5 rounded-full border border-border text-xs font-black">أجور</span><span class="px-3 py-1.5 rounded-full border border-border text-xs font-black">أخرى</span></div>
+      <div id="exp-list" class="space-y-2"><p class="text-sm font-bold text-muted-foreground">لا توجد مصروفات بعد — اضغط «مصروف جديد» للإضافة.</p></div>
+    </section>
+
+    <!-- ===== الدورات ===== -->
+    <section id="cycles" class="rounded-3xl border border-border bg-card p-5 md:p-7">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <h2 class="text-2xl font-black">الدورات المحاسبية</h2>
+        <button onclick="openCycleModal()" class="px-4 py-2.5 rounded-2xl border border-border bg-muted font-black">＋ دورة جديدة</button>
+      </div>
+      <p class="text-sm text-muted-foreground font-bold mb-3">لا يُسمح بأكثر من دورة مفتوحة. الدورة المغلقة تمنع الإضافة والتعديل.</p>
+      <div id="cycle-list" class="grid md:grid-cols-2 gap-3"></div>
+    </section>
+
+    <!-- ===== التقارير ===== -->
+    <section id="reports" class="rounded-3xl border border-border bg-card p-5 md:p-7">
+      <h2 class="text-2xl font-black mb-3">التقارير</h2>
+      <div class="flex flex-wrap gap-2 mb-4" id="report-tabs"></div>
+      <div class="grid md:grid-cols-4 gap-2 mb-4">
+        <select id="rep-cycle" onchange="renderReport()" class="px-3 py-2.5 rounded-2xl border border-border bg-background font-bold"></select>
+        <select id="rep-type" onchange="renderReport()" class="px-3 py-2.5 rounded-2xl border border-border bg-background font-bold">
+          <option value="">كل الأنواع</option><option>منزلي</option><option>تجاري</option><option>منزلي تجاري</option>
+        </select>
+        <input id="rep-search" oninput="renderReport()" placeholder="بحث…" class="md:col-span-2 px-4 py-2.5 rounded-2xl border border-border bg-background" />
+      </div>
+      <div class="flex flex-wrap gap-2 mb-3">
+        <button onclick="printReport()" class="px-4 py-2 rounded-xl border border-border bg-muted font-black text-sm">🖨 طباعة التقرير</button>
+        <button onclick="shareReport()" class="px-4 py-2 rounded-xl border border-border bg-muted font-black text-sm">📤 مشاركة</button>
+        <button onclick="exportCSV()" class="px-4 py-2 rounded-xl text-white font-black text-sm" style="background:#0d9488">⬇ تصدير التقرير</button>
+      </div>
+      <div id="report-body" class="overflow-x-auto"></div>
+    </section>
+
+    <!-- ===== الإعدادات ===== -->
+    <section id="settings" class="rounded-3xl border border-border bg-card p-5 md:p-7">
+      <h2 class="text-2xl font-black mb-4">إعدادات المشروع والتعرفة</h2>
+      <div class="grid md:grid-cols-2 gap-3">
+        <label class="fld">اسم المشروع<input id="s-name" /></label>
+        <label class="fld">المشغل / مدير المشروع<input id="s-operator" /></label>
+        <label class="fld">الدولة<input id="s-country" /></label>
+        <label class="fld">المحافظة<input id="s-gov" /></label>
+        <label class="fld">المديرية<input id="s-dist" /></label>
+        <label class="fld">شعار المشروع (نص)<input id="s-logo" /></label>
+        <label class="fld md:col-span-2">النص أسفل الفاتورة<textarea id="s-footer" rows="2"></textarea></label>
+      </div>
+      <h3 class="font-black mt-6 mb-2">التعرفة (ريال لكل كيلو + المبلغ الثابت)</h3>
+      <div class="grid md:grid-cols-3 gap-3" id="tariff-grid"></div>
+      <div class="mt-4 flex flex-wrap gap-2">
+        <button onclick="saveSettings()" class="px-5 py-3 rounded-2xl text-white font-black" style="background:linear-gradient(135deg,#0284c7,#0d9488)">حفظ الإعدادات</button>
+        <button onclick="exportBackup()" class="px-5 py-3 rounded-2xl border border-border bg-muted font-black">حفظ نسخة في ملف على الهاتف</button>
+        <label class="px-5 py-3 rounded-2xl border border-border bg-muted font-black cursor-pointer">استعادة نسخة<input type="file" id="restore-file" accept=".json" class="hidden" onchange="restoreBackup(this)" /></label>
+      </div>
+      <p class="mt-3 text-sm text-muted-foreground">تُحفظ المدخلات حاليًا داخل متصفح هذا الجهاز، ولا تُرسل إلى سحابة. لحفظها في ملف مستقل على أندرويد، اضغط «حفظ نسخة في ملف على الهاتف». الملف نسخة وقت الحفظ ولا يتحدث تلقائيًا؛ احفظ نسخة جديدة بعد التعديلات المهمة. فتح التطبيق من جديد دون إنترنت يتطلب تجهيز نسخة تدعم ذلك.</p>
+      <p id="backup-info" class="mt-3 text-sm font-bold text-muted-foreground"></p>
+    </section>
+
+    <footer class="text-center text-sm text-muted-foreground font-bold pt-4">
+      <p id="ftr-line">مشروع مياه قرية الجرشة العلياء • الجمهورية اليمنية</p>
+      <p>© <span id="yr"></span> نظام إدارة مشروع المياه — جميع البيانات محفوظة على جهازك</p>
+      <p class="mt-1 opacity-70">وحدة الاستهلاك: كيلو • العملة: ريال</p>
+    </footer>
+  </main>
+
+  <!-- تنقل سفلي للجوال -->
+  <nav class="fixed bottom-0 inset-x-0 z-50 border-t border-border bg-card/95 backdrop-blur md:hidden">
+    <div class="grid grid-cols-7 text-[10px] font-black text-center">
+      <a href="#dashboard" class="py-2.5">🏠<br/>الرئيسية</a>
+      <a href="#subscribers" class="py-2.5">👥<br/>المشتركون</a>
+      <a href="#invoices" class="py-2.5">🧾<br/>الفواتير</a>
+      <a href="#expenses" class="py-2.5">💸<br/>المصروفات</a>
+      <a href="#cycles" class="py-2.5">🔄<br/>الدورات</a>
+      <a href="#reports" class="py-2.5">📊<br/>التقارير</a>
+      <a href="#settings" class="py-2.5">⚙️<br/>الإعدادات</a>
+    </div>
+  </nav>
+
+  <!-- نافذة منبثقة عامة -->
+  <div id="modal" class="fixed inset-0 z-[60] hidden items-center justify-center p-4 bg-black/60">
+    <div class="w-full max-w-lg rounded-3xl bg-card border border-border p-5 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-3">
+        <h3 id="modal-title" class="font-black text-xl"></h3>
+        <button onclick="closeModal()" class="w-9 h-9 rounded-xl bg-muted font-black">✕</button>
+      </div>
+      <div id="modal-body"></div>
+    </div>
+  </div>
+
+  <!-- منطقة طباعة الفاتورة -->
+  <div id="print-area" class="hidden"></div>
+</div>
+
+<style>
+  .navlink{padding:.5rem .9rem;border-radius:.9rem;border:1px solid var(--border);background:var(--muted);white-space:nowrap}
+  .fld{display:flex;flex-direction:column;gap:.35rem;font-weight:800;font-size:.85rem}
+  .fld input,.fld textarea,.fld select{padding:.65rem .9rem;border-radius:1rem;border:1px solid var(--border);background:var(--background);font-weight:600}
+  :global(.card){background:var(--background);border:1px solid var(--border);border-radius:1.25rem;padding:1rem}
+  :global(.btn){padding:.55rem .9rem;border-radius:.9rem;border:1px solid var(--border);background:var(--muted);font-weight:800;font-size:.85rem}
+  :global(.btn-p){padding:.55rem .9rem;border-radius:.9rem;font-weight:800;font-size:.85rem;color:#fff;background:linear-gradient(135deg,#0284c7,#0d9488)}
+  :global(.btn-d){background:#e11d48;color:#fff;padding:.55rem .9rem;border-radius:.9rem;font-weight:800;font-size:.85rem}
+  :global(.badge){display:inline-block;padding:.2rem .7rem;border-radius:999px;font-size:.75rem;font-weight:800;border:1px solid var(--border)}
+  :global(table.rep){width:100%;border-collapse:collapse;font-size:.85rem;min-width:640px}
+  :global(table.rep) th,:global(table.rep) td{border:1px solid var(--border);padding:.5rem .6rem;text-align:right}
+  :global(table.rep) th{background:var(--muted);font-weight:900}
+  @media print{ header,nav,main section:not(.print-keep),footer,#modal{display:none!important} #print-area{display:block!important} }
+  #print-area{display:none}
+  section[id]{scroll-margin-top:130px}
+  html{scroll-behavior:smooth}
+  @media(max-width:767px){
+    #app-root main{padding:1rem .75rem calc(6rem + env(safe-area-inset-bottom));}
+    #app-root main>section{padding:1rem;border-radius:1.25rem;min-width:0;}
+    #app-root main>section:first-of-type h1{font-size:1.65rem;}
+    #app-root .quick-actions>a{padding:.75rem .3rem;font-size:.85rem;}
+    #dashboard>div:first-child{flex-wrap:wrap;gap:.75rem;}
+    #dash-cycle{width:100%;}
+    #app-root :global(input:not([type=checkbox]):not([type=file])),#app-root :global(select),#app-root :global(textarea){min-width:0;max-width:100%;font-size:16px;min-height:44px;}
+    #app-root :global(.grid)>*,#app-root :global(.flex)>*{min-width:0;}
+    #app-root :global(.card){overflow-wrap:anywhere;padding:.8rem;}
+    #app-root :global(button),#app-root :global(.btn),#app-root :global(.btn-p),#app-root :global(.btn-d){min-height:44px;touch-action:manipulation;}
+    #dash-cards :global(.text-lg){font-size:1rem;overflow-wrap:anywhere;}
+    #dash-latest :global(.card),#exp-list :global(.card){flex-wrap:wrap;gap:.65rem;}
+    #exp-list :global(.card)>div:last-child{width:100%;justify-content:space-between;flex-wrap:wrap;}
+    #report-body{max-width:100%;overscroll-behavior-x:contain;}
+    #modal{padding:.5rem;}
+    #modal>div{max-height:calc(100dvh - 1rem);padding:1rem;overscroll-behavior-y:contain;}
+    #modal-body :global(.grid-cols-2){grid-template-columns:minmax(0,1fr);}
+    #modal-body :global(.flex){flex-wrap:wrap;}
+    #modal-title{font-size:1.05rem;overflow-wrap:anywhere;}
+    #app-root>nav:last-of-type{padding-bottom:env(safe-area-inset-bottom);}
+    #app-root>nav:last-of-type>div{display:flex;overflow-x:auto;overscroll-behavior-x:contain;}
+    #app-root>nav:last-of-type a{flex:1 0 64px;min-height:52px;font-size:11px;}
+    section[id]{scroll-margin-top:200px;}
+  }
+  :global(.inv-paper){background:#fff;color:#111;border-radius:1rem;padding:1.25rem}
+</style>
+
+<script>
+const LS='wms_db_v1';
+const $=id=>document.getElementById(id);
+const fmt=n=>Number(n||0).toLocaleString('ar-YE');
+function scrollToId(id){document.getElementById(id)?.scrollIntoView({behavior:'smooth'})}
+$('yr').textContent=new Date().getFullYear();
+
+let DB=null;
+function seed(){return{
+ settings:{name:'مشروع مياه قرية الجرشة العلياء',country:'الجمهورية اليمنية',gov:'محافظة صنعاء',dist:'مديرية همدان',operator:'إدارة المشروع',logo:'💧',footer:'إن تسديدكم لفواتير المياه يؤكد حرصكم على استمرار الخدمة',
+  tariffs:{'منزلي':{price:200,fixed:2000},'تجاري':{price:400,fixed:5000},'منزلي تجاري':{price:300,fixed:3000}}},
+ cycles:[{id:'c1',name:'دورة يناير 2026',from:'2026-01-01',to:'2026-01-31',status:'مفتوحة'}],
+ subscribers:[
+  {meterNo:'1001',name:'أحمد محمد الحميري',phone:'771234567',type:'منزلي',address:'حارة السوق',notes:'',active:true},
+  {meterNo:'1002',name:'متجر النور التجاري',phone:'772345678',type:'تجاري',address:'الشارع العام',notes:'',active:true},
+  {meterNo:'1003',name:'علي حسن الأهدل',phone:'773456789',type:'منزلي تجاري',address:'جوار المدرسة',notes:'بدون عداد',active:true}],
+ invoices:[
+  {id:'F-0001',meterNo:'1001',prev:120,curr:270,date:'2026-01-05',cycleId:'c1',fine:0,cashPaid:28000},
+  {id:'F-0002',meterNo:'1002',prev:50,curr:50,date:'2026-01-06',cycleId:'c1',fine:0,cashPaid:5000}],
+ expenses:[{id:'E-01',category:'وقود',desc:'ديزل للمضخة',amount:15000,date:'2026-01-07',paidTo:'محطة الوقود',notes:'',cycleId:'c1'}],
+ lastBackup:null
+}}
+function load(){try{DB=JSON.parse(localStorage.getItem(LS))||seed()}catch{DB=seed()}save(true)}
+function save(silent){localStorage.setItem(LS,JSON.stringify(DB));if(!silent){}}
+
+/* ===== منطق الحساب ===== */
+function meterStatus(prev,curr){
+  prev=+prev||0;curr=+curr||0;const diff=curr-prev;
+  if(prev===0&&curr===0)return'بدون عداد';
+  if(diff>0)return'شغال';
+  if(diff<0)return'خارب - عد عكسي';
+  return'خارب - متوقف';
+}
+function consumptionOf(prev,curr){const d=(+curr||0)-(+prev||0);return d>0?d:0}
+function lastInvoice(meterNo,excludeId){const ordered=DB.invoices.filter(i=>i.meterNo===meterNo).sort((a,b)=>a.date.localeCompare(b.date)||a.id.localeCompare(b.id));const at=excludeId?ordered.findIndex(i=>i.id===excludeId):-1;const prior=at>=0?ordered.slice(0,at):ordered;return prior.length?enrich(prior[prior.length-1]):null}
+function calcInvoice({meterNo,type,prev,curr,fine=0,cashPaid=0,arrears=null,prevBalance=null,excludeId=null}){
+  const status=meterStatus(prev,curr),cons=consumptionOf(prev,curr);
+  const t=DB.settings.tariffs[type]||{price:200,fixed:2000};
+  let consValue=0;
+  if(status==='شغال')consValue=cons*t.price;
+  else if(status==='خارب - متوقف'||status==='بدون عداد')consValue=t.fixed;
+  else consValue=0;
+  const last=lastInvoice(meterNo,excludeId);
+  if(arrears==null)arrears=last?last.remainingOn:0;
+  if(prevBalance==null)prevBalance=last?last.remainingFor:0;
+  const totalDue=consValue+(+arrears||0)+(+fine||0);
+  const totalReceived=(+cashPaid||0)+(+prevBalance||0);
+  let remainingOn=0,remainingFor=0;
+  if(totalDue>totalReceived)remainingOn=totalDue-totalReceived;
+  else if(totalReceived>totalDue)remainingFor=totalReceived-totalDue;
+  return{status,cons,consValue,arrears:+arrears||0,prevBalance:+prevBalance||0,fine:+fine||0,cashPaid:+cashPaid||0,totalDue,totalReceived,remainingOn,remainingFor};
+}
+function enrich(inv){
+  const s=DB.subscribers.find(x=>x.meterNo===inv.meterNo);
+  const c=calcInvoice({meterNo:inv.meterNo,type:s?.type||'منزلي',prev:inv.prev,curr:inv.curr,fine:inv.fine,cashPaid:inv.cashPaid,arrears:inv.arrears,prevBalance:inv.prevBalance,excludeId:inv.id});
+  return{...inv,subName:s?.name||'—',subType:s?.type||'—',phone:s?.phone||'',...c};
+}
+function openCycle(){return DB.cycles.find(c=>c.status==='مفتوحة')}
+function cycleOf(id){return DB.cycles.find(c=>c.id===id)}
+
+/* ===== عرض ===== */
+function statusBadge(s){const m={'شغال':'background:#dcfce7;color:var(--accent)','خارب - متوقف':'background:#fef3c7;color:#b45309','بدون عداد':'background:#e0e7ff;color:#4338ca','خارب - عد عكسي':'background:#ffe4e6;color:var(--destructive)'};return `<span class="badge" style="${m[s]||''}">${s}</span>`}
+
+function renderAll(){fillCycleSelects();renderHeader();renderDash();renderSubs();renderInvs();renderExps();renderCycles();renderSettingsForm();renderReportTabs();renderReport();fillCycleSelects();$('backup-info').textContent=DB.lastBackup?('آخر نسخة احتياطية: '+DB.lastBackup):'لم يتم إنشاء نسخة احتياطية بعد.'}
+function renderHeader(){if($('hdr-project'))$('hdr-project').textContent=DB.settings.name;$('ftr-line').textContent=`${DB.settings.name} • ${DB.settings.country}`}
+function fillCycleSelects(){
+  const opts=DB.cycles.map(c=>`<option value="${c.id}">${c.name} (${c.status})</option>`).join('');
+  ['dash-cycle','inv-filter-cycle','rep-cycle'].forEach(id=>{const el=$(id);const v=el.value;el.innerHTML=(id==='inv-filter-cycle'?'<option value="">كل الدورات</option>':'')+opts;if(v)el.value=v});
+  if(!$('dash-cycle').value&&openCycle())$('dash-cycle').value=openCycle().id;
+  if(!$('inv-filter-cycle').value)$('inv-filter-cycle').value='';
+  if(!$('rep-cycle').value&&openCycle())$('rep-cycle').value=openCycle().id;
+}
+
+/* لوحة التحكم */
+function filteredInv(){const c=$('dash-cycle').value;return DB.invoices.filter(i=>!c||i.cycleId===c).map(enrich)}
+function renderDash(){
+  const invs=filteredInv();
+  const cId=$('dash-cycle').value;
+  const exps=DB.expenses.filter(e=>!cId||e.cycleId===cId);
+  const tCons=invs.reduce((a,i)=>a+i.cons,0),tBills=invs.reduce((a,i)=>a+i.totalDue,0);
+  const tCash=invs.reduce((a,i)=>a+i.cashPaid,0); // نقد فعلي فقط
+  const tDebt=invs.reduce((a,i)=>a+i.remainingOn,0),tBal=invs.reduce((a,i)=>a+i.remainingFor,0);
+  const tExp=exps.reduce((a,e)=>a+(+e.amount||0),0),net=tCash-tExp;
+  const cards=[['إجمالي الاستهلاك',fmt(tCons)+' كيلو','💧'],['إجمالي الفواتير',fmt(tBills)+' ريال','🧾'],['المقبوض النقدي الفعلي',fmt(tCash)+' ريال','💵'],['المتبقي على المشتركين',fmt(tDebt)+' ريال','⚠️'],['أرصدة المشتركين',fmt(tBal)+' ريال','💰'],['إجمالي المصروفات',fmt(tExp)+' ريال','💸'],['صافي النقد المتوفر',fmt(net)+' ريال','🏦'],['عدد الفواتير',invs.length,'📊']];
+  $('dash-cards').innerHTML=cards.map(c=>`<div class="card"><div class="text-2xl">${c[2]}</div><div class="text-xs font-bold text-muted-foreground mt-1">${c[0]}</div><div class="font-black text-lg">${c[1]}</div></div>`).join('');
+  const mx=Math.max(tCash,tExp,1);
+  $('bar-chart').innerHTML=[['التحصيل النقدي',tCash,'#0d9488'],['المصروفات',tExp,'#e11d48'],['الصافي',Math.max(net,0),'#0284c7']].map(r=>`<div><div class="flex justify-between text-xs font-black"><span>${r[0]}</span><span>${fmt(r[1])} ريال</span></div><div class="h-2.5 rounded-full bg-muted"><div class="h-2.5 rounded-full" style="width:${Math.round(r[1]/mx*100)}%;background:${r[2]}"></div></div></div>`).join('');
+  const groups={};invs.forEach(i=>groups[i.status]=(groups[i.status]||0)+1);
+  $('meter-chart').innerHTML=Object.entries(groups).map(([k,v])=>`${statusBadge(k)} <b>${v}</b>`).join(' ')||'<span class="text-sm text-muted-foreground font-bold">لا فواتير بعد</span>';
+  $('dash-latest').innerHTML=invs.slice(-4).reverse().map(i=>`<div class="card !p-2.5 flex justify-between"><span><b>${i.id}</b> • ${i.subName}<br/><span class="text-muted-foreground">${i.cons} كيلو • ${fmt(i.totalDue)} ريال</span></span>${statusBadge(i.status)}</div>`).join('')||'لا فواتير';
+}
+
+/* المشتركون */
+function renderSubs(){
+  const q=($('sub-search').value||'').trim(),ft=$('sub-filter-type').value,fa=$('sub-filter-active').value;
+  const list=DB.subscribers.filter(s=>(!ft||s.type===ft)&&(!fa||String(s.active?1:0)===fa)&&(!q||s.name.includes(q)||s.meterNo.includes(q)||(s.phone||'').includes(q)));
+  $('sub-count').textContent=`(${list.length})`;
+  $('sub-list').innerHTML=list.map(s=>{
+    const invs=DB.invoices.filter(i=>i.meterNo===s.meterNo).map(enrich);
+    const debt=lastInvoice(s.meterNo)?.remainingOn||0;
+    return`<div class="card"><div class="flex justify-between gap-2"><div><p class="font-black">${s.name} ${s.active?'':'<span class="badge">موقوف</span>'}</p><p class="text-xs text-muted-foreground font-bold">عداد ${s.meterNo} • ${s.type} • ${s.phone||'بدون هاتف'}</p><p class="text-xs font-bold mt-1">الفواتير: ${invs.length} • الدين: ${fmt(debt)} ريال</p></div><div class="text-3xl">${s.type==='تجاري'?'🏪':s.type==='منزلي تجاري'?'🏠':'🏡'}</div></div>
+    <div class="flex flex-wrap gap-1.5 mt-3"><button class="btn" onclick="statement('${s.meterNo}')">كشف الحساب</button><button class="btn" onclick="newInvoiceFor('${s.meterNo}')">فاتورة جديدة</button><button class="btn" onclick="openSubModal('${s.meterNo}')">تعديل</button><button class="btn-d" onclick="delSub('${s.meterNo}')">حذف</button></div></div>`}).join('')||emptyState('لا يوجد مشتركون — أضف أول مشترك');
+}
+function emptyState(t){return`<div class="card text-center py-8 text-muted-foreground font-bold">${t}</div>`}
+
+/* الفواتير */
+function renderInvs(){
+  const q=($('inv-search').value||'').trim(),cy=$('inv-filter-cycle').value,st=$('inv-filter-status').value;
+  const list=DB.invoices.map(enrich).filter(i=>(!cy||i.cycleId===cy)&&(!st||i.status===st)&&(!q||i.id.includes(q)||i.subName.includes(q))).sort((a,b)=>b.date.localeCompare(a.date));
+  $('inv-list').innerHTML=list.map(i=>`<div class="card"><div class="flex flex-wrap justify-between gap-2 items-start">
+    <div><p class="font-black">${i.id} • ${i.subName}</p><p class="text-xs text-muted-foreground font-bold">${i.date} • ${cycleOf(i.cycleId)?.name||''} • عداد ${i.meterNo} • ${i.subType}</p>
+    <p class="text-sm font-bold mt-1">السابق ${fmt(i.prev)} → الحالي ${fmt(i.curr)} • الاستهلاك <b>${fmt(i.cons)} كيلو</b> ${statusBadge(i.status)}</p>
+    <p class="text-xs font-bold mt-1">المستحق ${fmt(i.totalDue)} ريال • المدفوع ${fmt(i.cashPaid)} ريال ${i.remainingOn?`• <span style="color:var(--destructive)">عليه ${fmt(i.remainingOn)}</span>`:''}${i.remainingFor?`• <span style="color:var(--accent)">له ${fmt(i.remainingFor)}</span>`:''}</p></div>
+    <div class="flex flex-wrap gap-1.5"><button class="btn" onclick="viewInvoice('${i.id}')">عرض / طباعة</button><button class="btn" onclick="shareInvoice('${i.id}')">مشاركة</button><button class="btn" onclick="openInvModal('${i.id}')">تعديل</button><button class="btn-d" onclick="delInv('${i.id}')">حذف</button></div></div></div>`).join('')||emptyState('لا توجد فواتير مطابقة');
+}
+
+/* المصروفات */
+const CATS=['صيانة','قطع غيار','زيوت','وقود','صيانة الشبكة','رواتب','أجور','أخرى'];
+function renderExps(){
+  const cId=$('dash-cycle').value;
+  const list=DB.expenses.filter(e=>!cId||e.cycleId===cId);
+  const tot=list.reduce((a,e)=>a+(+e.amount||0),0);
+  const byCat={};list.forEach(e=>byCat[e.category]=(byCat[e.category]||0)+(+e.amount||0));
+  $('exp-cats').innerHTML=`<span class="badge">الإجمالي: ${fmt(tot)} ريال</span>`+Object.entries(byCat).map(([k,v])=>`<span class="badge">${k}: ${fmt(v)}</span>`).join('');
+  $('exp-list').innerHTML=list.slice().reverse().map(e=>`<div class="card !p-3 flex justify-between items-center gap-2"><div><b>${e.desc}</b> <span class="badge">${e.category}</span><div class="text-xs text-muted-foreground font-bold">${e.date} • ${cycleOf(e.cycleId)?.name||''} • ${e.paidTo||''}</div></div><div class="flex items-center gap-2"><b>${fmt(e.amount)} ريال</b><button class="btn-d" onclick="delExp('${e.id}')">حذف</button></div></div>`).join('')||emptyState('لا مصروفات بعد');
+}
+
+/* الدورات */
+function renderCycles(){
+  $('cycle-list').innerHTML=DB.cycles.map(c=>{
+    const invs=DB.invoices.filter(i=>i.cycleId===c.id).map(enrich);
+    const cash=invs.reduce((a,i)=>a+i.cashPaid,0),exp=DB.expenses.filter(e=>e.cycleId===c.id).reduce((a,e)=>a+(+e.amount||0),0);
+    return`<div class="card"><div class="flex justify-between"><div><p class="font-black">${c.name}</p><p class="text-xs text-muted-foreground font-bold">${c.from} → ${c.to}</p></div><span class="badge" style="${c.status==='مفتوحة'?'background:#dcfce7;color:var(--accent)':'background:#e5e7eb;color:#374151'}">${c.status}</span></div>
+    <p class="text-xs font-bold mt-2">فواتير ${invs.length} • استهلاك ${fmt(invs.reduce((a,i)=>a+i.cons,0))} كيلو • تحصيل ${fmt(cash)} ريال • مصروفات ${fmt(exp)} ريال • الصافي ${fmt(cash-exp)} ريال</p>
+    <div class="flex gap-1.5 mt-3">${c.status==='مفتوحة'?`<button class="btn" onclick="closeCycle('${c.id}')">إغلاق الدورة</button>`:`<button class="btn" onclick="reopenCycle('${c.id}')">إعادة فتح</button>`}<button class="btn-d" onclick="delCycle('${c.id}')">حذف</button></div></div>`}).join('');
+}
+
+/* التقارير */
+let repTab='الفواتير';
+function renderReportTabs(){const tabs=['الفواتير','التحصيل','الديون','الأرصدة','المصروفات','الاستهلاك'];$('report-tabs').innerHTML=tabs.map(t=>`<button onclick="selectReport('${t}')" class="btn ${repTab===t?'!bg-cyan-700 !text-white':''}">${t}</button>`).join('')}
+function renderReport(){
+  const cy=$('rep-cycle').value,ty=$('rep-type').value,q=($('rep-search').value||'').trim();
+  let invs=DB.invoices.map(enrich).filter(i=>(!cy||i.cycleId===cy)&&(!ty||i.subType===ty)&&(!q||i.subName.includes(q)||i.id.includes(q)));
+  let html='';
+  if(repTab==='الفواتير')html=repTable(invs.map(i=>[i.id,i.date,i.subName,i.meterNo,fmt(i.cons)+' كيلو',i.status,fmt(i.totalDue),fmt(i.cashPaid)]),['الرقم','التاريخ','المشترك','العداد','الاستهلاك','الحالة','الإجمالي (ريال)','المدفوع (ريال)']);
+  else if(repTab==='التحصيل')html=repTable(invs.filter(i=>i.cashPaid>0).map(i=>[i.date,i.id,i.subName,fmt(i.cashPaid),'نقدي']),['التاريخ','الفاتورة','المشترك','المبلغ (ريال)','الطريقة'])+`<p class="mt-2 font-black">إجمالي التحصيل النقدي الفعلي: ${fmt(invs.reduce((a,i)=>a+i.cashPaid,0))} ريال (بدون احتساب الأرصدة المرحلة)</p>`;
+  else if(repTab==='الديون')html=repTable(invs.filter(i=>i.remainingOn>0).map(i=>[i.subName,i.meterNo,i.id,fmt(i.remainingOn)]),['المشترك','العداد','الفاتورة','الباقي عليه (ريال)']);
+  else if(repTab==='الأرصدة')html=repTable(invs.filter(i=>i.remainingFor>0).map(i=>[i.subName,i.meterNo,i.id,fmt(i.remainingFor)]),['المشترك','العداد','الفاتورة','الباقي له (ريال)']);
+  else if(repTab==='المصروفات'){const ex=DB.expenses.filter(e=>!cy||e.cycleId===cy);html=repTable(ex.map(e=>[e.date,e.category,e.desc,fmt(e.amount),e.paidTo||'']),['التاريخ','التصنيف','الوصف','المبلغ (ريال)','المدفوع له'])}
+  else html=repTable(invs.map(i=>[i.subName,i.meterNo,fmt(i.prev),fmt(i.curr),fmt(i.cons)+' كيلو',i.status]),['المشترك','العداد','السابقة','الحالية','الاستهلاك','الحالة']);
+  $('report-body').innerHTML=html;
+}
+function repTable(rows,heads){if(!rows.length)return emptyState('لا بيانات لهذا التقرير');return`<table class="rep"><thead><tr>${heads.map(h=>`<th>${h}</th>`).join('')}</tr></thead><tbody>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</tbody></table>`}
+
+/* ===== نوافذ ===== */
+function openModal(t,h){$('modal-title').textContent=t;$('modal-body').innerHTML=h;$('modal').classList.remove('hidden');$('modal').classList.add('flex')}
+function closeModal(){$('modal').classList.add('hidden');$('modal').classList.remove('flex')}
+
+function openSubModal(meterNo){
+  const s=DB.subscribers.find(x=>x.meterNo===meterNo)||{meterNo:'',name:'',phone:'',type:'منزلي',address:'',notes:'',active:true};
+  openModal(meterNo?'تعديل مشترك':'مشترك جديد',`<div class="grid gap-2.5">
+   <label class="fld">رقم المشترك / العداد *<input id="f-meter" value="${s.meterNo}" ${meterNo?'disabled':''} inputmode="numeric" /></label>
+   <label class="fld">اسم المشترك *<input id="f-name" value="${s.name}" /></label>
+   <div class="grid grid-cols-2 gap-2"><label class="fld">الهاتف<input id="f-phone" value="${s.phone||''}" /></label>
+   <label class="fld">نوع الاستهلاك<select id="f-type"><option ${s.type==='منزلي'?'selected':''}>منزلي</option><option ${s.type==='تجاري'?'selected':''}>تجاري</option><option ${s.type==='منزلي تجاري'?'selected':''}>منزلي تجاري</option></select></label></div>
+   <label class="fld">العنوان<input id="f-addr" value="${s.address||''}" /></label>
+   <label class="fld">ملاحظات<input id="f-notes" value="${s.notes||''}" /></label>
+   <label class="flex items-center gap-2 font-bold text-sm"><input type="checkbox" id="f-active" ${s.active?'checked':''}/> اشتراك نشط</label>
+   <button class="btn-p !py-3" onclick="saveSub('${meterNo||''}')">حفظ المشترك</button></div>`);
+}
+function saveSub(old){
+  const m=$('f-meter').value.trim(),n=$('f-name').value.trim();
+  if(!m)return toast('يرجى إدخال رقم العداد.');if(!n)return toast('يرجى إدخال اسم المشترك.');
+  if(!old&&DB.subscribers.some(s=>s.meterNo===m))return toast('رقم العداد مستخدم بالفعل.');
+  const obj={meterNo:m,name:n,phone:$('f-phone').value.trim(),type:$('f-type').value,address:$('f-addr').value.trim(),notes:$('f-notes').value.trim(),active:$('f-active').checked};
+  if(old){Object.assign(DB.subscribers.find(s=>s.meterNo===old),obj)}else DB.subscribers.push(obj);
+  save();closeModal();renderAll();toast('تم حفظ المشترك بنجاح.');
+}
+function delSub(m){if(DB.invoices.some(i=>i.meterNo===m&&cycleOf(i.cycleId)?.status!=='مفتوحة'))return toast('لا يمكن حذف مشترك مرتبط بدورة مغلقة.');if(!confirm('تأكيد حذف المشترك؟ سيتم حذف فواتيره أيضًا.'))return;DB.subscribers=DB.subscribers.filter(s=>s.meterNo!==m);DB.invoices=DB.invoices.filter(i=>i.meterNo!==m);save();renderAll();toast('تم الحذف.')}
+
+function newInvoiceFor(m){openInvModal('',m)}
+function openInvModal(id='',presetMeter=''){
+  const oc=openCycle();if(!oc&&!id)return toast('لا يمكن إضافة الفاتورة: لا توجد دورة مفتوحة.');
+  const inv=DB.invoices.find(i=>i.id===id);
+  if(inv&&cycleOf(inv.cycleId)?.status!=='مفتوحة')return toast('لا يمكن تعديل الفاتورة لأن الدورة المحاسبية مغلقة.');
+  const m=inv?.meterNo||presetMeter||(DB.subscribers[0]?.meterNo||'');
+  const last=m?lastInvoice(m,id):null;
+  const dPrev=inv?.prev??last?.curr??0;
+  openModal(id?'تعديل فاتورة':'فاتورة جديدة',`<div class="grid gap-2.5">
+   <div class="grid grid-cols-2 gap-2"><label class="fld">المشترك<select id="v-sub" onchange="invAuto()">${DB.subscribers.filter(s=>s.active||s.meterNo===inv?.meterNo).map(s=>`<option value="${s.meterNo}" ${s.meterNo===m?'selected':''}>${s.name} (${s.meterNo})</option>`).join('')}</select></label>
+   <label class="fld">التاريخ<input type="date" id="v-date" value="${inv?.date||new Date().toISOString().slice(0,10)}" /></label></div>
+   <div class="grid grid-cols-2 gap-2"><label class="fld">السابقة<input type="number" id="v-prev" value="${dPrev}" oninput="invLive()" /></label>
+   <label class="fld">الحالية *<input type="number" id="v-curr" value="${inv?.curr??''}" oninput="invLive()" placeholder="أدخل القراءة الحالية" /></label></div>
+   <div class="grid grid-cols-2 gap-2"><label class="fld">المتأخرات<input type="number" id="v-arr" value="${inv?.arrears??last?.remainingOn??0}" oninput="invLive()" /></label>
+   <label class="fld">الرصيد السابق (له)<input type="number" id="v-bal" value="${inv?.prevBalance??last?.remainingFor??0}" oninput="invLive()" /></label></div>
+   <div class="grid grid-cols-2 gap-2"><label class="fld">الغرامات<input type="number" id="v-fine" value="${inv?.fine||0}" oninput="invLive()" /></label>
+   <label class="fld">النقد المدفوع حاليًا<input type="number" id="v-cash" value="${inv?.cashPaid||0}" oninput="invLive()" /></label></div>
+   <div id="v-live" class="rounded-2xl border border-border bg-background p-3 text-sm font-bold"></div>
+   <button class="btn-p !py-3" onclick="saveInv('${id}')">حفظ الفاتورة</button></div>`);
+  invLive();
+}
+function invAuto(){const l=lastInvoice($('v-sub').value);$('v-prev').value=l?.curr??0;$('v-arr').value=l?.remainingOn??0;$('v-bal').value=l?.remainingFor??0;invLive()}
+function invLive(){
+  const m=$('v-sub').value,s=DB.subscribers.find(x=>x.meterNo===m);
+  const c=calcInvoice({meterNo:m,type:s?.type||'منزلي',prev:+$('v-prev').value||0,curr:+$('v-curr').value||0,fine:+$('v-fine').value||0,cashPaid:+$('v-cash').value||0,arrears:+$('v-arr').value||0,prevBalance:+$('v-bal').value||0});
+  $('v-live').innerHTML=`الاستهلاك: <b>${fmt(c.cons)} كيلو</b> ${statusBadge(c.status)}<br/>قيمة الاستهلاك: ${fmt(c.consValue)} ريال • الإجمالي المستحق: <b>${fmt(c.totalDue)} ريال</b><br/>إجمالي المستلم: ${fmt(c.totalReceived)} ريال (نقد ${fmt(c.cashPaid)} + رصيد ${fmt(c.prevBalance)})<br/>${c.remainingOn?`<span style="color:var(--destructive)">الباقي عليه: ${fmt(c.remainingOn)} ريال</span>`:c.remainingFor?`<span style="color:var(--accent)">الباقي له: ${fmt(c.remainingFor)} ريال</span>`:'لا باقي — مسدد بالكامل'}`;
+}
+function saveInv(id){
+  if(!$('v-curr').value)return toast('يرجى إدخال القراءة الحالية.');
+  const oc=openCycle();if(!oc)return toast('لا يمكن إضافة الفاتورة لأن الدورة المحاسبية مغلقة.');
+  if(id&&cycleOf(DB.invoices.find(i=>i.id===id)?.cycleId)?.status!=='مفتوحة')return toast('لا يمكن تعديل فاتورة في دورة مغلقة.');
+  const m=$('v-sub').value;if(!m)return toast('أضف مشتركًا نشطًا أولًا.');if(!$('v-date').value)return toast('حدد تاريخ الفاتورة.');if(['v-prev','v-curr','v-fine','v-cash','v-arr','v-bal'].some(k=>+$(k).value<0))return toast('لا يُسمح بقيم سالبة.');
+  if(id){const inv=DB.invoices.find(i=>i.id===id);Object.assign(inv,{meterNo:m,prev:+$('v-prev').value||0,curr:+$('v-curr').value||0,date:$('v-date').value,fine:+$('v-fine').value||0,cashPaid:+$('v-cash').value||0,arrears:+$('v-arr').value||0,prevBalance:+$('v-bal').value||0});}
+  else{const n='F-'+String(Math.max(0,...DB.invoices.map(i=>Number(i.id.replace('F-',''))||0))+1).padStart(4,'0');DB.invoices.push({id:n,meterNo:m,prev:+$('v-prev').value||0,curr:+$('v-curr').value||0,date:$('v-date').value,cycleId:oc.id,fine:+$('v-fine').value||0,cashPaid:+$('v-cash').value||0,arrears:+$('v-arr').value||0,prevBalance:+$('v-bal').value||0});}
+  save();closeModal();renderAll();toast('تم حفظ الفاتورة بنجاح.');
+}
+function delInv(id){const inv=DB.invoices.find(i=>i.id===id);if(cycleOf(inv.cycleId)?.status!=='مفتوحة')return toast('لا يمكن حذف فاتورة في دورة مغلقة.');if(!confirm('تأكيد حذف الفاتورة '+id+'؟'))return;DB.invoices=DB.invoices.filter(i=>i.id!==id);save();renderAll()}
+
+function openExpModal(){
+  const oc=openCycle();if(!oc)return toast('لا يمكن إضافة المصروف لأن الدورة مغلقة أو لا توجد دورة مفتوحة.');
+  openModal('مصروف جديد',`<div class="grid gap-2.5"><div class="grid grid-cols-2 gap-2"><label class="fld">التصنيف<select id="e-cat">${CATS.map(c=>`<option>${c}</option>`).join('')}</select></label>
+  <label class="fld">المبلغ (ريال) *<input type="number" id="e-amt" /></label></div>
+  <label class="fld">الوصف<input id="e-desc" /></label>
+  <div class="grid grid-cols-2 gap-2"><label class="fld">التاريخ<input type="date" id="e-date" value="${new Date().toISOString().slice(0,10)}" /></label>
+  <label class="fld">المدفوع له<input id="e-to" /></label></div>
+  <label class="fld">ملاحظات<input id="e-notes" /></label>
+  <button class="btn-p !py-3" onclick="saveExp()">حفظ المصروف</button></div>`);
+}
+function saveExp(){if(!openCycle())return toast('لا توجد دورة مفتوحة.');if(!$('e-date').value)return toast('حدد تاريخ المصروف.');const a=+$('e-amt').value||0;if(a<=0)return toast('يرجى إدخال مبلغ المصروف.');const oc=openCycle();DB.expenses.push({id:'E-'+Date.now(),category:$('e-cat').value,desc:$('e-desc').value||$('e-cat').value,amount:a,date:$('e-date').value,paidTo:$('e-to').value,notes:$('e-notes').value,cycleId:oc.id});save();closeModal();renderAll();toast('تم حفظ المصروف.')}
+function delExp(id){const e=DB.expenses.find(x=>x.id===id);if(!e||cycleOf(e.cycleId)?.status!=='مفتوحة')return toast('لا يمكن حذف مصروف في دورة مغلقة.');if(!confirm('حذف المصروف؟'))return;DB.expenses=DB.expenses.filter(e=>e.id!==id);save();renderAll()}
+
+function openCycleModal(){openModal('دورة جديدة',`<div class="grid gap-2.5"><label class="fld">اسم الدورة<input id="c-name" placeholder="دورة فبراير 2026" /></label><div class="grid grid-cols-2 gap-2"><label class="fld">من<input type="date" id="c-from" /></label><label class="fld">إلى<input type="date" id="c-to" /></label></div><button class="btn-p !py-3" onclick="saveCycle()">إنشاء وفتح الدورة</button></div>`)}
+function saveCycle(){if(openCycle())return toast('لا يمكن: توجد دورة مفتوحة بالفعل. أغلقها أولًا.');const n=$('c-name').value.trim(),from=$('c-from').value,to=$('c-to').value;if(!n||!from||!to)return toast('أدخل اسم الدورة وتاريخ البداية والنهاية.');if(to<from)return toast('تاريخ النهاية يجب ألا يسبق البداية.');if(DB.cycles.some(c=>c.from&&c.to&&from<=c.to&&to>=c.from))return toast('تواريخ الدورة تتداخل مع دورة سابقة.');const cycle={id:'c'+Date.now(),name:n,from,to,status:'مفتوحة'};DB.cycles.push(cycle);save();closeModal();fillCycleSelects();['dash-cycle','inv-filter-cycle','rep-cycle'].forEach(id=>$(id).value=cycle.id);renderAll();toast('تم إنشاء وفتح الدورة الجديدة بنجاح.')}
+function closeCycle(id){const c=cycleOf(id);if(!c||c.status!=='مفتوحة')return;openModal('إغلاق الدورة وفتح دورة جديدة',`<p class="font-bold mb-4">سيتم إغلاق الدورة الحالية مع الاحتفاظ بفواتيرها ومصروفاتها، ثم إدخال بيانات الدورة الجديدة.</p><button id="confirm-close-cycle" class="btn-p">تأكيد الإغلاق والمتابعة</button>`);$('confirm-close-cycle').onclick=()=>{c.status='مغلقة';save();renderAll();openCycleModal();toast('تم إغلاق الدورة. أدخل بيانات الدورة الجديدة.')}}
+function reopenCycle(id){if(openCycle())return toast('توجد دورة مفتوحة أخرى.');DB.cycles.find(c=>c.id===id).status='مفتوحة';save();renderAll()}
+function delCycle(id){if(DB.invoices.some(i=>i.cycleId===id)||DB.expenses.some(e=>e.cycleId===id))return toast('لا يمكن حذف دورة مرتبطة بفواتير أو مصروفات.');if(!confirm('تأكيد حذف الدورة؟'))return;DB.cycles=DB.cycles.filter(c=>c.id!==id);save();renderAll()}
+
+/* كشف حساب + فاتورة */
+function statement(m){
+  const s=DB.subscribers.find(x=>x.meterNo===m);const invs=DB.invoices.filter(i=>i.meterNo===m).map(enrich).sort((a,b)=>a.date.localeCompare(b.date));
+  const t={c:0,b:0,cash:0,d:0,bl:0};invs.forEach(i=>{t.c+=i.cons;t.b+=i.consValue+i.fine;t.cash+=i.cashPaid});const latest=lastInvoice(m);t.d=latest?.remainingOn||0;t.bl=latest?.remainingFor||0;
+  openModal('كشف حساب: '+s.name,`<div class="text-sm font-bold space-y-1"><p>العداد ${s.meterNo} • ${s.type} • ${s.phone||''} • ${s.address||''}</p>
+  <div class="grid grid-cols-2 gap-2"><div class="card">إجمالي الاستهلاك<br/><b>${fmt(t.c)} كيلو</b></div><div class="card">إجمالي الفواتير<br/><b>${fmt(t.b)} ريال</b></div><div class="card">المدفوع نقدًا<br/><b>${fmt(t.cash)} ريال</b></div><div class="card">الديون / الأرصدة<br/><b>${fmt(t.d)} / ${fmt(t.bl)} ريال</b></div></div>
+  <div class="overflow-x-auto"><table class="rep"><thead><tr><th>التاريخ</th><th>سابق</th><th>حالي</th><th>كيلو</th><th>الحالة</th><th>الإجمالي</th><th>المدفوع</th><th>عليه/له</th></tr></thead><tbody>
+  ${invs.map(i=>`<tr><td>${i.date}</td><td>${fmt(i.prev)}</td><td>${fmt(i.curr)}</td><td>${fmt(i.cons)}</td><td>${i.status}</td><td>${fmt(i.totalDue)}</td><td>${fmt(i.cashPaid)}</td><td>${i.remainingOn?'عليه '+fmt(i.remainingOn):i.remainingFor?'له '+fmt(i.remainingFor):'—'}</td></tr>`).join('')||'<tr><td colspan=8>لا فواتير</td></tr>'}
+  </tbody></table></div><div class="flex gap-2"><button class="btn" onclick="printStatement()">طباعة الكشف</button><button class="btn" onclick="newInvoiceFor('${m}')">فاتورة جديدة</button></div></div>`);
+}
+function invHTML(i){
+  const s=DB.settings;
+  return`<div class="inv-paper"><div class="text-center border-b-2 border-slate-800 pb-3"><div class="text-4xl">${s.logo||'💧'}</div><p class="font-black">${s.country} • ${s.gov} • ${s.dist}</p><h3 class="font-black text-xl">${s.name}</h3><p class="text-sm font-bold">المشغل: ${s.operator} • الدورة: ${cycleOf(i.cycleId)?.name||''}</p></div>
+  <div class="grid grid-cols-2 gap-2 mt-3 text-sm font-bold"><p>رقم الفاتورة: ${i.id}</p><p>التاريخ: ${i.date}</p><p>المشترك: ${i.subName}</p><p>العداد: ${i.meterNo} • ${i.subType}</p><p>الهاتف: ${i.phone||'—'}</p><p>الحالة: ${i.status}</p></div>
+  <table class="w-full mt-3 text-sm" style="border-collapse:collapse"><tbody>
+  ${[['القراءة السابقة',fmt(i.prev)],['القراءة الحالية',fmt(i.curr)],['الاستهلاك (كيلو)',fmt(i.cons)+' كيلو'],['قيمة الاستهلاك',fmt(i.consValue)+' ريال'],['المتأخرات',fmt(i.arrears)+' ريال'],['الغرامات',fmt(i.fine)+' ريال'],['إجمالي المستحق',fmt(i.totalDue)+' ريال'],['الرصيد السابق (له)',fmt(i.prevBalance)+' ريال'],['النقد المدفوع',fmt(i.cashPaid)+' ريال'],['إجمالي المستلم',fmt(i.totalReceived)+' ريال'],['الباقي عليه',fmt(i.remainingOn)+' ريال'],['الباقي له',fmt(i.remainingFor)+' ريال']].map(r=>`<tr><td style="border:1px solid #999;padding:.4rem" >${r[0]}</td><td style="border:1px solid #999;padding:.4rem;font-weight:800">${r[1]}</td></tr>`).join('')}
+  </tbody></table><p class="text-center text-xs font-bold mt-3">${s.footer}</p></div>`;
+}
+function viewInvoice(id){const i=DB.invoices.map(enrich).find(x=>x.id===id);openModal('فاتورة '+id,invHTML(i)+`<div class="flex flex-wrap gap-2 mt-3"><button class="btn" onclick="printInvoice('${id}')">🖨 طباعة / PDF</button><button class="btn" onclick="shareInvoice('${id}')">📤 مشاركة / واتساب</button></div>`)}
+function printInvoice(id){const i=DB.invoices.map(enrich).find(x=>x.id===id);$('print-area').innerHTML=invHTML(i);window.print()}
+function shareInvoice(id){
+  const i=DB.invoices.map(enrich).find(x=>x.id===id);
+  const txt=`${DB.settings.name}%0Aفاتورة ${i.id} • ${i.subName}%0Aالاستهلاك ${i.cons} كيلو • الإجمالي ${fmt(i.totalDue)} ريال%0Aالمدفوع ${fmt(i.cashPaid)} ريال • الباقي عليه ${fmt(i.remainingOn)} • له ${fmt(i.remainingFor)}`;
+  if(navigator.share){navigator.share({title:'فاتورة '+i.id,text:`فاتورة ${i.id} — ${i.subName}: ${i.cons} كيلو، الإجمالي ${i.totalDue} ريال`}).catch(()=>{})}
+  else window.open('https://wa.me/?text='+encodeURIComponent(txt.replace(/%0A/g,'\n')),'_blank','noopener');
+}
+function shareReport(){const t=`تقرير ${repTab} — ${DB.settings.name}`,text=t+'\n'+$('report-body').innerText;if(navigator.share)navigator.share({title:t,text}).catch(()=>{});else window.open('https://wa.me/?text='+encodeURIComponent(text),'_blank','noopener')}
+function exportCSV(){const tbl=document.querySelector('#report-body table');if(!tbl){toast('لا بيانات للتصدير.');return}let rows=[...tbl.querySelectorAll('tr')].map(tr=>[...tr.querySelectorAll('th,td')].map(c=>'"'+(c.innerText||'').replace(/"/g,'""')+'"').join(','));const blob=new Blob(["\ufeff"+rows.join('\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='تقرير-'+Date.now()+'.csv';a.click();toast('تم تصدير التقرير.')}
+function exportSubs(){if(!DB.subscribers.length){toast('لا مشتركين للتصدير.');return}let rows=['"رقم العداد","الاسم","الهاتف","النوع","العنوان"'].concat(DB.subscribers.map(s=>`"${s.meterNo}","${s.name}","${s.phone||''}","${s.type}","${s.address||''}"`));const blob=new Blob(["\ufeff"+rows.join('\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='المشتركون-'+Date.now()+'.csv';a.click();toast('تم تصدير المشتركين.')}
+function exportInvs(){const list=DB.invoices.map(enrich);if(!list.length){toast('لا فواتير للتصدير.');return}let rows=['"رقم الفاتورة","المشترك","الاستهلاك كيلو","الإجمالي","المدفوع","الباقي عليه","الباقي له"'].concat(list.map(i=>`"${i.id}","${i.subName}",${i.cons},${i.totalDue},${i.cashPaid},${i.remainingOn},${i.remainingFor}`));const blob=new Blob(["\ufeff"+rows.join('\n')],{type:'text/csv;charset=utf-8'});const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='الفواتير-'+Date.now()+'.csv';a.click();toast('تم تصدير الفواتير.')}
+
+/* الإعدادات */
+function renderSettingsForm(){
+  const s=DB.settings;$('s-name').value=s.name;$('s-operator').value=s.operator;$('s-country').value=s.country;$('s-gov').value=s.gov;$('s-dist').value=s.dist;$('s-logo').value=s.logo||'';$('s-footer').value=s.footer||'';
+  $('tariff-grid').innerHTML=Object.entries(s.tariffs).map(([k,v])=>`<div class="card"><p class="font-black mb-2">${k}</p><label class="fld">سعر الكيلو (ريال)<input type="number" id="t-${k}-p" value="${v.price}" /></label><label class="fld mt-2">المبلغ الثابت (ريال)<input type="number" id="t-${k}-f" value="${v.fixed}" /></label></div>`).join('');
+}
+function saveSettings(){
+  if(Object.keys(DB.settings.tariffs).some(k=>['p','f'].some(s=>!Number.isFinite(Number($('t-'+k+'-'+s).value))||Number($('t-'+k+'-'+s).value)<0)))return toast('أدخل تعرفة صحيحة غير سالبة.');
+  const s=DB.settings;s.name=$('s-name').value.trim()||s.name;s.operator=$('s-operator').value;s.country=$('s-country').value;s.gov=$('s-gov').value;s.dist=$('s-dist').value;s.logo=$('s-logo').value;s.footer=$('s-footer').value;
+  Object.keys(s.tariffs).forEach(k=>{s.tariffs[k]={price:+$('t-'+k+'-p').value||0,fixed:+$('t-'+k+'-f').value||0}});
+  save();renderAll();toast('تم حفظ الإعدادات.');
+}
+
+/* النسخ الاحتياطي */
+function exportBackup(){
+  DB.lastBackup=new Date().toLocaleString('ar-YE');save();
+  const blob=new Blob([JSON.stringify(DB)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='backup-water-'+Date.now()+'.json';a.click();
+  renderAll();toast('تم إنشاء النسخة الاحتياطية.');
+}
+function restoreBackup(input){
+  const f=input.files[0];if(!f)return;
+  if(!confirm('استعادة النسخة؟ سيتم استبدال البيانات الحالية بعد التحقق من صحة الملف.')){input.value='';return}
+  const r=new FileReader();
+  r.onload=()=>{try{const d=JSON.parse(r.result);if(!d.settings?.tariffs||!Array.isArray(d.subscribers)||!Array.isArray(d.invoices)||!Array.isArray(d.cycles)||!Array.isArray(d.expenses)||d.cycles.filter(c=>c.status==='مفتوحة').length>1)throw 0;DB=d;save();renderAll();toast('تمت الاستعادة بنجاح.')}catch{toast('تعذر استعادة النسخة الاحتياطية.')}};
+  r.readAsText(f);input.value='';
+}
+
+/* الثيم + تنبيه */
+function toast(m){const t=document.createElement('div');t.textContent=m;t.style.cssText='position:fixed;bottom:80px;right:50%;transform:translateX(50%);background:#0f172a;color:#fff;padding:.7rem 1.2rem;border-radius:1rem;font-weight:800;z-index:99';document.body.appendChild(t);setTimeout(()=>t.remove(),2600)}
+if($('theme-btn'))$('theme-btn').onclick=()=>{const h=document.documentElement;const dark=h.dataset.theme!=='dark';h.dataset.theme=dark?'dark':'light';h.classList.toggle('dark',dark);$('theme-btn').textContent=dark?'☀️ فاتح':'🌙 داكن'};
+document.documentElement.dataset.theme=document.documentElement.classList.contains('dark')?'dark':'light';
+const darkCSS=document.createElement('style');darkCSS.textContent=`html[data-theme="dark"]{--background:#0d0c14;--foreground:#eceaf4;--card:#151421;--muted:#201d31;--border:#2a2741}html[data-theme="light"]{--background:#f4f7fa;--foreground:#0f172a;--card:#ffffff;--muted:#e8eff5;--border:#d5e0ea}.text-muted-foreground{color:#64748b}html[data-theme="dark"] .text-muted-foreground{color:#9d98b0}`;document.head.appendChild(darkCSS);
+window.addEventListener('offline',()=>toast('انقطع الإنترنت. يمكنك متابعة الصفحة المفتوحة؛ احفظ نسخة من بياناتك في ملف على الهاتف.'));
+Object.assign(window,{scrollToId,renderAll,renderSubs,renderInvs,renderReport,openSubModal,saveSub,delSub,newInvoiceFor,openInvModal,invAuto,invLive,saveInv,delInv,openExpModal,saveExp,delExp,openCycleModal,saveCycle,closeCycle,reopenCycle,delCycle,closeModal,statement,viewInvoice,printInvoice,shareInvoice,shareReport,exportCSV,exportSubs,exportInvs,saveSettings,exportBackup,restoreBackup,renderReportTabs,printReport,printStatement,selectReport});
+function selectReport(tab){repTab=tab;renderReportTabs();renderReport()}
+function printReport(){$('print-area').innerHTML='<h2>'+DB.settings.name+' — '+repTab+'</h2>'+$('report-body').innerHTML;window.print()}
+function printStatement(){$('print-area').innerHTML='<h2>'+$('modal-title').textContent+'</h2>'+$('modal-body').innerHTML;window.print()}
+load();renderAll();
+</script>
+</Base>

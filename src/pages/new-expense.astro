@@ -1,0 +1,47 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+
+---
+<Base title="مصروف جديد | نظام إدارة مشروع المياه" description="سجّل مصروفًا جديدًا لمشروع المياه مع التصنيف والمبلغ والتاريخ والدورة المحاسبية، ويُخصم تلقائيًا من صافي النقد.">
+<Header />
+<main dir="rtl" class="mx-auto w-full max-w-3xl px-4 py-10">
+<a href="/" class="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground hover:text-foreground">→ العودة للرئيسية</a>
+<div class="mb-4 flex flex-wrap gap-2 text-sm font-bold"><span class="px-2 py-2 text-muted-foreground">إدخال سريع:</span><a href="/new-subscriber" class="rounded-xl border border-border bg-card px-4 py-2">＋ مشترك</a><a href="/new-invoice" class="rounded-xl border border-border bg-card px-4 py-2">＋ فاتورة</a><a href="/new-expense" class="rounded-xl bg-sky-600 px-4 py-2 text-white">＋ مصروف</a><a href="/#new-cycle" class="rounded-xl border border-border bg-card px-4 py-2">＋ دورة</a></div>
+<div class="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+<div class="bg-gradient-to-l from-sky-600 to-cyan-500 px-6 py-8 text-white">
+<h1 class="text-2xl font-bold">مصروف جديد</h1>
+<p class="mt-2 text-white/90">سجّل المصروف وسيُحفظ تلقائياً ويظهر في التقارير وصافي النقد.</p>
+<div class="mt-4 flex flex-wrap gap-2 text-xs">
+<span class="rounded-full bg-white/20 px-3 py-1">صيانة / وقود / رواتب</span>
+<span class="rounded-full bg-white/20 px-3 py-1">مرتبط بالدورة المحاسبية</span>
+<span class="rounded-full bg-white/20 px-3 py-1">يعمل بدون إنترنت</span>
+</div>
+</div>
+<div class="p-6">
+<form id="exp-form" class="grid gap-3">
+<label class="grid gap-1 text-sm font-bold">التصنيف *<select id="e-cat" class="rounded-2xl border border-border bg-background px-4 py-2.5"><option>صيانة</option><option>قطع غيار</option><option>زيوت</option><option>وقود</option><option>صيانة الشبكة</option><option>رواتب</option><option>أجور</option><option>أخرى</option></select></label>
+<label class="grid gap-1 text-sm font-bold">الوصف *<input id="e-desc" required class="rounded-2xl border border-border bg-background px-4 py-2.5" /></label>
+<div class="grid grid-cols-2 gap-3">
+<label class="grid gap-1 text-sm font-bold">المبلغ (ريال) *<input id="e-amt" required type="number" min="1" class="rounded-2xl border border-border bg-background px-4 py-2.5" /></label>
+<label class="grid gap-1 text-sm font-bold">التاريخ<input id="e-date" type="date" class="rounded-2xl border border-border bg-background px-4 py-2.5" /></label>
+</div>
+<label class="grid gap-1 text-sm font-bold">المدفوع له<input id="e-to" class="rounded-2xl border border-border bg-background px-4 py-2.5" /></label>
+<label class="grid gap-1 text-sm font-bold">ملاحظات<textarea id="e-notes" rows="2" class="rounded-2xl border border-border bg-background px-4 py-2.5"></textarea></label>
+<button type="submit" class="rounded-2xl bg-rose-600 py-3 font-bold text-white">حفظ المصروف</button>
+<p id="e-msg" class="text-sm font-bold"></p>
+</form>
+<script is:inline>
+(function(){var LS='wms_db_v1';document.getElementById('e-date').value=new Date().toISOString().slice(0,10);document.getElementById('exp-form').addEventListener('submit',function(e){e.preventDefault();var msg=document.getElementById('e-msg');var a=+document.getElementById('e-amt').value||0;if(a<=0||!Number.isFinite(a)){msg.textContent='يرجى إدخال مبلغ المصروف.';return}var db=null;if(!document.getElementById('e-date').value){msg.textContent='حدد تاريخ المصروف.';return}try{db=JSON.parse(localStorage.getItem(LS))}catch(x){}if(!db){msg.textContent='افتح الصفحة الرئيسية أولا لتهيئة النظام ثم أعد المحاولة.';return}var oc=db.cycles.find(function(c){return c.status==='مفتوحة'});if(!oc){msg.textContent='لا يمكن إضافة المصروف: لا توجد دورة مفتوحة.';return}db.expenses.push({id:'E-'+Date.now(),category:document.getElementById('e-cat').value,desc:document.getElementById('e-desc').value.trim(),amount:a,date:document.getElementById('e-date').value,paidTo:document.getElementById('e-to').value.trim(),notes:document.getElementById('e-notes').value.trim(),cycleId:oc.id});localStorage.setItem(LS,JSON.stringify(db));msg.textContent='تم حفظ المصروف.';e.target.reset();document.getElementById('e-date').value=new Date().toISOString().slice(0,10);});})();
+</script>
+<div class="mt-6 grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
+<div class="rounded-2xl bg-muted/60 p-3">لا يمكن إضافة مصروف لدورة مغلقة.</div>
+<div class="rounded-2xl bg-muted/60 p-3">يُخصم المصروف من المقبوض النقدي لحساب صافي النقد.</div>
+<div class="rounded-2xl bg-muted/60 p-3">يمكنك تصفية المصروفات حسب التصنيف والدورة.</div>
+</div>
+</div>
+</div>
+</main>
+<Footer />
+</Base>

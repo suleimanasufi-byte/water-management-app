@@ -1,0 +1,47 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+
+---
+<Base title="مشترك جديد | نظام إدارة مشروع المياه" description="أضف مشتركًا جديدًا لمشروع المياه مع رقم العداد واسم المشترك ونوع الاستهلاك والهاتف والعنوان بسهولة وبدون إنترنت.">
+<Header />
+<main dir="rtl" class="mx-auto w-full max-w-3xl px-4 py-10">
+<a href="/" class="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground hover:text-foreground">→ العودة للرئيسية</a>
+<div class="mb-4 flex flex-wrap gap-2 text-sm font-bold"><span class="px-2 py-2 text-muted-foreground">إدخال سريع:</span><a href="/new-subscriber" class="rounded-xl bg-sky-600 px-4 py-2 text-white">＋ مشترك</a><a href="/new-invoice" class="rounded-xl border border-border bg-card px-4 py-2">＋ فاتورة</a><a href="/new-expense" class="rounded-xl border border-border bg-card px-4 py-2">＋ مصروف</a><a href="/#new-cycle" class="rounded-xl border border-border bg-card px-4 py-2">＋ دورة</a></div>
+<div class="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+<div class="bg-gradient-to-l from-sky-600 to-cyan-500 px-6 py-8 text-white">
+<h1 class="text-2xl font-bold">＋ مشترك جديد</h1>
+<p class="mt-2 text-white/90">أدخل بيانات المشترك وسيتم حفظها تلقائياً في النظام وإرسالها إلى لوحة التحكم.</p>
+<div class="mt-4 flex flex-wrap gap-2 text-xs">
+<span class="rounded-full bg-white/20 px-3 py-1">رقم العداد فريد</span>
+<span class="rounded-full bg-white/20 px-3 py-1">الاستهلاك بالكيلو</span>
+<span class="rounded-full bg-white/20 px-3 py-1">يعمل بدون إنترنت</span>
+</div>
+</div>
+<div class="p-6">
+<form id="sub-form" class="grid gap-3">
+<label class="grid gap-1 text-sm font-bold">رقم المشترك / رقم العداد *<input id="f-meter" required inputmode="numeric" autofocus autocomplete="off" placeholder="مثال: 1001" class="rounded-2xl border border-border bg-background px-4 py-2.5" /></label>
+<label class="grid gap-1 text-sm font-bold">اسم المشترك *<input id="f-name" required autocomplete="name" placeholder="الاسم الكامل" class="rounded-2xl border border-border bg-background px-4 py-2.5" /></label>
+<div class="grid grid-cols-2 gap-3">
+<label class="grid gap-1 text-sm font-bold">رقم الهاتف<input id="f-phone" class="rounded-2xl border border-border bg-background px-4 py-2.5" /></label>
+<label class="grid gap-1 text-sm font-bold">نوع الاستهلاك<select id="f-type" class="rounded-2xl border border-border bg-background px-4 py-2.5"><option>منزلي</option><option>تجاري</option><option>منزلي تجاري</option></select></label>
+</div>
+<label class="grid gap-1 text-sm font-bold">العنوان<input id="f-addr" class="rounded-2xl border border-border bg-background px-4 py-2.5" /></label>
+<label class="grid gap-1 text-sm font-bold">ملاحظات<textarea id="f-notes" rows="2" class="rounded-2xl border border-border bg-background px-4 py-2.5"></textarea></label>
+<button type="submit" class="rounded-2xl bg-sky-600 py-3 font-bold text-white">حفظ المشترك</button>
+<p id="f-msg" class="text-sm font-bold"></p>
+</form>
+<script is:inline>
+(function(){var LS='wms_db_v1';function load(){try{return JSON.parse(localStorage.getItem(LS))}catch(e){return null}}document.getElementById('sub-form').addEventListener('submit',function(e){e.preventDefault();var m=document.getElementById('f-meter').value.trim();var n=document.getElementById('f-name').value.trim();var msg=document.getElementById('f-msg');if(!m){msg.textContent='يرجى إدخال رقم العداد.';return}if(!n){msg.textContent='يرجى إدخال اسم المشترك.';return}var db=load();if(!db){msg.textContent='افتح الصفحة الرئيسية أولا لتهيئة النظام ثم أعد المحاولة.';return}if(db.subscribers.some(function(s){return s.meterNo===m})){msg.textContent='رقم العداد مستخدم بالفعل.';return}db.subscribers.push({meterNo:m,name:n,phone:document.getElementById('f-phone').value.trim(),type:document.getElementById('f-type').value,address:document.getElementById('f-addr').value.trim(),notes:document.getElementById('f-notes').value.trim(),active:true});localStorage.setItem(LS,JSON.stringify(db));msg.textContent='تم حفظ المشترك بنجاح.';e.target.reset();});})();
+</script>
+<div class="mt-6 grid gap-3 text-sm text-muted-foreground sm:grid-cols-3">
+<div class="rounded-2xl bg-muted/60 p-3">تأكد أن رقم العداد غير مستخدم من قبل.</div>
+<div class="rounded-2xl bg-muted/60 p-3">اختر نوع الاستهلاك بدقة لأنه يحدد التعرفة.</div>
+<div class="rounded-2xl bg-muted/60 p-3">يمكنك عرض كشف الحساب بعد الحفظ.</div>
+</div>
+</div>
+</div>
+</main>
+<Footer />
+</Base>

@@ -1,0 +1,39 @@
+---
+import { UserButton } from "./auth/KleapAuth";
+// القائمة العلوية المشتركة — تظهر في كل الصفحات
+---
+<header class="sticky top-0 z-50 border-b border-border bg-card/95 backdrop-blur">
+  <div class="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-3">
+    <a href="/" class="flex items-center gap-3">
+      <div class="w-11 h-11 rounded-2xl grid place-items-center font-black text-xl text-white" style="background:linear-gradient(135deg,#0284c7,#0d9488)">💧</div>
+      <div>
+        <p class="font-black text-lg leading-tight" id="hdr-project">مشروع مياه قرية الجرشة العلياء</p>
+        <p class="text-xs text-muted-foreground">نظام إدارة مشروع المياه</p>
+      </div>
+    </a>
+    <div class="flex items-center gap-2">
+      <span id="offline-badge" class="text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-500/15 text-emerald-600 border border-emerald-500/30">● يعمل محليًا</span>
+      <button id="theme-btn" onclick="toggleTheme()" class="px-3 py-2 rounded-xl border border-border bg-muted text-sm font-bold">🌙 داكن</button>
+      <UserButton client:only="react" />
+    </div>
+  </div>
+  <nav class="max-w-7xl mx-auto px-3 pb-3 flex flex-wrap gap-2 text-sm font-bold items-center">
+    <a href="/#dashboard" class="navlink">الرئيسية</a>
+    <a href="/#subscribers" class="navlink">المشتركون</a>
+    <a href="/#invoices" class="navlink">الفواتير</a>
+    <a href="/#expenses" class="navlink">المصروفات</a>
+    <a href="/#cycles" class="navlink">الدورات</a>
+    <a href="/#reports" class="navlink">التقارير</a>
+    <span class="nav-sep"></span>
+    <span class="text-xs text-muted-foreground font-black px-1">إدخال سريع:</span>
+    <a href="/new-subscriber" class="navlink nav-add">＋ مشترك</a>
+    <a href="/new-invoice" class="navlink nav-add">＋ فاتورة</a>
+    <a href="/new-expense" class="navlink nav-add">＋ مصروف</a>
+    <a href="/#new-cycle" class="navlink nav-add nav-cycle">＋ دورة</a>
+    <span class="nav-sep"></span>
+    <a href="/pricing" class="navlink">المنتجات والأسعار</a>
+    <a href="/#settings" class="navlink">الإعدادات</a>
+  </nav>
+</header>
+<style>.navlink{padding:.45rem .7rem;border-radius:.9rem;border:1px solid var(--border);background:var(--card);white-space:nowrap;text-decoration:none;color:inherit;font-size:.82rem}.navlink:hover{background:#0284c7;color:#fff}.nav-add{background:linear-gradient(135deg,#0284c7,#0d9488)!important;color:#fff!important;border-color:transparent!important;box-shadow:0 2px 8px rgba(2,132,199,.35)}.nav-sep{width:1px;align-self:stretch;background:var(--border);flex:none}@media(max-width:767px){header>div{flex-wrap:wrap;gap:.65rem;padding:.65rem .75rem}header>div>a{flex:1;min-width:0;gap:.5rem}header>div>a>div:first-child{width:2rem;height:2rem;flex-shrink:0}header>div>a>div:last-child{min-width:0}#hdr-project{font-size:.9rem;overflow-wrap:anywhere}header>div>a p.text-xs{font-size:.65rem}header>div>div{width:100%;justify-content:flex-end;gap:.4rem}#offline-badge{margin-inline-end:auto;font-size:.7rem;padding:.3rem .5rem}#theme-btn{min-height:44px}header nav{flex-wrap:nowrap;overflow-x:auto;max-width:100%;padding:.4rem .75rem .65rem;overscroll-behavior-x:contain}header nav>*{flex-shrink:0}header nav a{min-height:44px;display:inline-flex;align-items:center}header nav>span:not(.nav-sep){display:none}}</style>
+<script is:inline>function applyTheme(dark){var d=document.documentElement;d.classList.toggle('dark',dark);d.dataset.theme=dark?'dark':'light';var b=document.getElementById('theme-btn');if(b){b.textContent=dark?'☀️ فاتح':'🌙 داكن';b.setAttribute('aria-pressed',String(dark));}}function toggleTheme(){var dark=!document.documentElement.classList.contains('dark');applyTheme(dark);try{localStorage.setItem('w-theme',dark?'d':'l')}catch(e){}}try{var saved=localStorage.getItem('w-theme');applyTheme(saved==='d'||(saved!=='l'&&matchMedia('(prefers-color-scheme: dark)').matches));}catch(e){applyTheme(matchMedia('(prefers-color-scheme: dark)').matches);}document.addEventListener('click',function(e){var link=e.target.closest('a[href="/#new-cycle"]');if(link&&location.pathname==='/'&&typeof window.openCycleModal==='function'){e.preventDefault();window.openCycleModal()}});function cycleShortcut(){if(location.hash==='#new-cycle'&&typeof window.openCycleModal==='function')window.openCycleModal()}window.addEventListener('load',cycleShortcut);window.addEventListener('hashchange',cycleShortcut);</script>

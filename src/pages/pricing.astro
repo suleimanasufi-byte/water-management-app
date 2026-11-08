@@ -1,0 +1,77 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+<Base
+  title="المنتجات والأسعار | نظام إدارة مشروع المياه"
+  description="خطط وأسعار نظام إدارة مشروع المياه: نسخة مجانية واحترافية وموسعة لمشاريع مياه الشرب في اليمن — تعمل دون إنترنت."
+>
+<div dir="rtl" class="min-h-screen bg-background text-foreground">
+  <Header />
+  <main class="max-w-6xl mx-auto px-4 py-10 space-y-10">
+    <section class="text-center space-y-3">
+      <h1 class="text-3xl md:text-4xl font-black">المنتجات والأسعار</h1>
+      <p class="text-muted-foreground font-medium max-w-2xl mx-auto">اختر الخطة المناسبة لمشروع المياه — جميع الخطط عربية بالكامل، تعمل دون إنترنت، ووحدة الاستهلاك <b>كيلو</b> والعملة <b>ريال</b>.</p>
+    </section>
+
+    <section class="rounded-3xl border border-border bg-card p-6">
+      <h2 class="font-black text-xl mb-1">منتجاتنا</h2>
+      <p class="text-sm text-muted-foreground font-medium mb-4">كل ما يحتاجه مشروع المياه في مكان واحد — يعمل دون إنترنت.</p>
+      <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3 text-sm font-medium">
+        <div class="rounded-2xl border border-border p-4 space-y-1"><p class="font-black">📱 تطبيق الإدارة</p><p class="text-muted-foreground">مشتركين وفواتير وقراءات بالكيلو ودورات ومصروفات وتقارير ونسخ احتياطي.</p></div>
+        <div class="rounded-2xl border border-border p-4 space-y-1"><p class="font-black">🧾 الفواتير والطباعة</p><p class="text-muted-foreground">فاتورة عربية RTL مع شعار المشروع، PDF وطباعة ومشاركة عبر واتساب.</p></div>
+        <div class="rounded-2xl border border-border p-4 space-y-1"><p class="font-black">📊 التقارير والدورات</p><p class="text-muted-foreground">تحصيل وديون وأرصدة ومصروفات واستهلاك بالكيلو لكل دورة محاسبية.</p></div>
+        <div class="rounded-2xl border border-border p-4 space-y-1"><p class="font-black">🛠️ التركيب والتدريب</p><p class="text-muted-foreground">إعداد التعرفة والبيانات الأولية وتدريب المشغل على الاستخدام اليومي.</p></div>
+      </div>
+    </section>
+
+    <section class="grid md:grid-cols-3 gap-4">
+      <div class="rounded-3xl border border-border bg-card p-6 flex flex-col gap-3">
+        <p class="font-black text-lg">الأساسية</p>
+        <p class="text-3xl font-black">مجانًا</p>
+        <ul class="text-sm font-medium space-y-2 text-muted-foreground">
+          <li>✓ حتى 100 مشترك</li>
+          <li>✓ الفواتير والقراءات بالكيلو</li>
+          <li>✓ دورة محاسبية واحدة</li>
+          <li>✓ نسخ احتياطي محلي</li>
+        </ul>
+        <a href="/#settings" class="mt-auto text-center px-5 py-3 rounded-2xl font-black border border-border bg-muted">ابدأ مجانًا</a>
+      </div>
+      <div class="rounded-3xl border-2 border-sky-600 bg-card p-6 flex flex-col gap-3 relative">
+        <span class="absolute -top-3 right-6 text-xs font-black px-3 py-1 rounded-full bg-sky-600 text-white">الأكثر طلبًا</span>
+        <p class="font-black text-lg">الاحترافية</p>
+        <p class="text-3xl font-black">15,000 <span class="text-base font-bold text-muted-foreground">ريال / سنة</span></p>
+        <ul class="text-sm font-medium space-y-2 text-muted-foreground">
+          <li>✓ مشتركون وفواتير بلا حدود</li>
+          <li>✓ طباعة PDF ومشاركة واتساب</li>
+          <li>✓ التقارير وكشوف الحسابات</li>
+          <li>✓ المصروفات والدورات المتعددة</li>
+          <li>✓ دعم فني بالعربية</li>
+        </ul>
+        <a href="/#settings" class="mt-auto text-center px-5 py-3 rounded-2xl font-black text-white" style="background:linear-gradient(135deg,#0284c7,#0d9488)">اشترك الآن</a>
+      </div>
+      <div class="rounded-3xl border border-border bg-card p-6 flex flex-col gap-3">
+        <p class="font-black text-lg">المشاريع الكبرى</p>
+        <p class="text-3xl font-black">تواصل معنا</p>
+        <ul class="text-sm font-medium space-y-2 text-muted-foreground">
+          <li>✓ عدة مشاريع وصلاحيات (مدير، محاسب، محصل)</li>
+          <li>✓ تدريب المشغلين</li>
+          <li>✓ ترحيل البيانات القديمة</li>
+        </ul>
+        <a href="/#settings" class="mt-auto text-center px-5 py-3 rounded-2xl font-black border border-border bg-muted">اطلب عرض سعر</a>
+      </div>
+    </section>
+
+    <section class="rounded-3xl border border-border bg-card p-6">
+      <h2 class="font-black text-xl mb-3">أسئلة شائعة</h2>
+      <div class="space-y-3 text-sm font-medium">
+        <p><b>هل يعمل دون إنترنت؟</b> نعم — جميع العمليات الأساسية محلية على جهازك.</p>
+        <p><b>ما وحدة الاستهلاك؟</b> الكيلو في كل الشاشات والفواتير والتقارير.</p>
+        <p><b>هل بياناتي محفوظة؟</b> نعم — مع نظام نسخ احتياطي واستعادة كامل.</p>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</div>
+</Base>

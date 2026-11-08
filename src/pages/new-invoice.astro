@@ -1,0 +1,50 @@
+---
+import Base from "../layouts/Base.astro";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+---
+<Base title="فاتورة جديدة | نظام إدارة مشروع المياه" description="أصدر فاتورة مياه جديدة بالكيلو مع الترحيل التلقائي للقراءات والمتأخرات والأرصدة وحساب الباقي عليه والباقي له فورًا.">
+<Header />
+<main dir="rtl" class="mx-auto w-full max-w-3xl px-4 py-10">
+<a href="/" class="mb-6 inline-flex items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-sm text-muted-foreground hover:text-foreground">→ العودة للرئيسية</a>
+<div class="mb-4 flex flex-wrap gap-2 text-sm font-bold"><span class="px-2 py-2 text-muted-foreground">إدخال سريع:</span><a href="/new-subscriber" class="rounded-xl border border-border bg-card px-4 py-2">＋ مشترك</a><a href="/new-invoice" class="rounded-xl bg-sky-600 px-4 py-2 text-white">＋ فاتورة</a><a href="/new-expense" class="rounded-xl border border-border bg-card px-4 py-2">＋ مصروف</a><a href="/#new-cycle" class="rounded-xl border border-border bg-card px-4 py-2">＋ دورة</a></div>
+<div class="overflow-hidden rounded-3xl border border-border bg-card shadow-sm">
+<div class="bg-gradient-to-l from-sky-600 to-cyan-500 px-6 py-8 text-white">
+<h1 class="text-2xl font-bold">＋ فاتورة جديدة</h1>
+<p class="mt-2 text-white/90">اختر المشترك وأدخل القراءة — الترحيل والحساب يتم تلقائيًا (الوحدة: كيلو).</p>
+</div>
+<div class="p-6">
+<form id="inv-form" class="grid gap-3">
+<label class="grid gap-1 text-sm font-bold">المشترك *<select id="v-sub" class="rounded-2xl border border-border bg-background px-4 py-2.5"></select></label>
+<div class="grid grid-cols-2 gap-3">
+<label class="grid gap-1 text-sm font-bold">القراءة السابقة<input id="v-prev" type="number" class="rounded-2xl border border-border bg-background px-4 py-2.5" /></label>
+<label class="grid gap-1 text-sm font-bold">القراءة الحالية *<input id="v-curr" type="number" required placeholder="أدخل القراءة الحالية" class="rounded-2xl border border-border bg-background px-4 py-2.5" /></label>
+</div>
+<div class="grid grid-cols-2 gap-3">
+<label class="grid gap-1 text-sm font-bold">الغرامات<input id="v-fine" type="number" value="0" class="rounded-2xl border border-border bg-background px-4 py-2.5" /></label>
+<label class="grid gap-1 text-sm font-bold">النقد المدفوع<input id="v-cash" type="number" value="0" class="rounded-2xl border border-border bg-background px-4 py-2.5" /></label>
+</div>
+<div id="v-live" class="rounded-2xl bg-muted/60 p-4 text-sm font-bold"></div>
+<button type="submit" class="rounded-2xl bg-sky-600 py-3 font-bold text-white">حفظ الفاتورة</button>
+<p id="v-msg" class="text-sm font-bold"></p>
+</form>
+</div>
+</div>
+</main>
+<Footer />
+</Base>
+<script is:inline>
+(function(){var LS='wms_db_v1';var db=null;try{db=JSON.parse(localStorage.getItem(LS))}catch(e){}
+var sel=document.getElementById('v-sub'),msg=document.getElementById('v-msg'),live=document.getElementById('v-live');
+if(!db){msg.textContent='افتح الصفحة الرئيسية أولا لتهيئة النظام ثم أعد المحاولة.';return}
+function subs(){return db.subscribers.filter(function(s){return s.active})}
+function fillSubs(){sel.innerHTML=subs().map(function(s){return '<option value="'+s.meterNo+'">'+s.name+' ('+s.meterNo+')</option>'}).join('')||'<option value="">لا يوجد مشتركون</option>';auto()}
+function last(m){var list=db.invoices.filter(function(i){return i.meterNo===m}).sort(function(a,b){return a.date.localeCompare(b.date)||a.id.localeCompare(b.id)}),on=0,fr=0,result=null;var s=db.subscribers.find(function(x){return x.meterNo===m});var t=db.settings.tariffs[s?s.type:'منزلي']||{price:200,fixed:2000};list.forEach(function(i){var st=status(i.prev,i.curr),cons=Math.max(0,i.curr-i.prev),value=st==='شغال'?cons*t.price:(st==='خارب - عد عكسي'?0:t.fixed),due=value+(i.arrears==null?on:+i.arrears)+(+i.fine||0),got=(+i.cashPaid||0)+(i.prevBalance==null?fr:+i.prevBalance);on=Math.max(0,due-got);fr=Math.max(0,got-due);result=Object.assign({},i,{remainingOn:on,remainingFor:fr})});return result}
+function status(p,c){p=+p||0;c=+c||0;var d=c-p;if(p===0&&c===0)return'بدون عداد';if(d>0)return'شغال';if(d<0)return'خارب - عد عكسي';return'خارب - متوقف'}
+function auto(){var l=last(sel.value);document.getElementById('v-prev').value=l?l.curr:0;calc()}
+function calc(){var m=sel.value;var s=subs().find(function(x){return x.meterNo===m});if(!s){live.textContent='';return}var p=+document.getElementById('v-prev').value||0;var c=+document.getElementById('v-curr').value||0;var st=status(p,c);var cons=c-p>0?c-p:0;var t=(db.settings.tariffs||{})[s.type]||{price:200,fixed:2000};var cv=st==='شغال'?cons*t.price:(st==='خارب - متوقف'||st==='بدون عداد'?t.fixed:0);var l=last(m);var arr=l?l.remainingOn:0;var bal=l?l.remainingFor:0;var fine=+document.getElementById('v-fine').value||0;var cash=+document.getElementById('v-cash').value||0;var due=cv+arr+fine;var got=cash+bal;var on=due>got?due-got:0;var fr=got>due?got-due:0;live.innerHTML='الحالة: '+st+' • الاستهلاك: '+cons+' كيلو • قيمة الاستهلاك: '+cv+' ريال • الإجمالي: '+due+' ريال • الباقي عليه: '+on+' • الباقي له: '+fr;}
+sel.addEventListener('change',auto);['v-prev','v-curr','v-fine','v-cash'].forEach(function(id){document.getElementById(id).addEventListener('input',calc)});
+document.getElementById('inv-form').addEventListener('submit',function(e){e.preventDefault();if(['v-prev','v-curr','v-fine','v-cash'].some(function(id){return +document.getElementById(id).value<0})){msg.textContent='لا يُسمح بقيم سالبة.';return}var oc=db.cycles.find(function(x){return x.status==='مفتوحة'});if(!oc){msg.textContent='لا يمكن إضافة الفاتورة: لا توجد دورة مفتوحة.';return}var m=sel.value;if(!m){msg.textContent='اختر المشترك.';return}var cv=document.getElementById('v-curr').value;if(cv===''||cv==null){msg.textContent='يرجى إدخال القراءة الحالية.';return}var s=subs().find(function(x){return x.meterNo===m});var p=+document.getElementById('v-prev').value||0;var c=+cv||0;var st=status(p,c);var cons=c-p>0?c-p:0;var t=(db.settings.tariffs||{})[s.type]||{price:200,fixed:2000};var cval=st==='شغال'?cons*t.price:(st==='خارب - متوقف'||st==='بدون عداد'?t.fixed:0);var l=last(m);var arr=l?l.remainingOn:0;var bal=l?l.remainingFor:0;var fine=+document.getElementById('v-fine').value||0;var cash=+document.getElementById('v-cash').value||0;var due=cval+arr+fine;var got=cash+bal;var n=Math.max(0,...db.invoices.map(function(i){return Number(i.id.replace('F-',''))||0}))+1;var id='F-'+String(n).padStart(4,'0');while(db.invoices.some(function(i){return i.id===id})){n++;id='F-'+String(n).padStart(4,'0')}db.invoices.push({id:id,meterNo:m,prev:p,curr:c,date:new Date().toISOString().slice(0,10),cycleId:oc.id,fine:fine,cashPaid:cash,consValue:cval,arrears:arr,prevBalance:bal,total:due,received:got,remainingOn:due>got?due-got:0,remainingFor:got>due?got-due:0,status:st,cons:cons});localStorage.setItem(LS,JSON.stringify(db));msg.textContent='تم حفظ الفاتورة '+id+' بنجاح.';document.getElementById('inv-form').reset();auto();calc();});
+fillSubs();
+})();
+</script>
