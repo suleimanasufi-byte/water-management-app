@@ -575,6 +575,23 @@ const jsonLd = {
   </head>
   <body class="min-h-screen bg-background text-foreground antialiased">
     <slot />
+    <script is:inline>
+      (function(){
+        if(window.__waterOfflineStarted)return;
+        window.__waterOfflineStarted=true;
+        function status(text){window.waterOfflineStatus=text;var el=document.getElementById('offline-status');if(el)el.textContent=text;}
+        document.addEventListener('astro:page-load',function(){if(window.waterOfflineStatus)status(window.waterOfflineStatus);});
+        if(!('serviceWorker' in navigator)){status('هذا المتصفح لا يدعم تجهيز التطبيق دون اتصال.');return;}
+        status('جارٍ تجهيز صفحات التطبيق للعمل دون اتصال…');
+        navigator.serviceWorker.register('/water-offline.js',{scope:'/'}).then(function(reg){
+          function ready(){status('تم تجهيز التطبيق للعمل دون اتصال. البيانات محفوظة على هذا الهاتف؛ الدخول للحساب والمشاركة الخارجية يحتاجان الإنترنت.');}
+          if(reg.active&&!reg.installing)ready();
+          var worker=reg.installing||reg.waiting;
+          if(worker)worker.addEventListener('statechange',function(){if(worker.state==='activated')ready();if(worker.state==='redundant')status('لم يكتمل تجهيز العمل دون اتصال؛ افتح التطبيق باتصال بالإنترنت وحاول مجددًا.');});
+          navigator.serviceWorker.addEventListener('controllerchange',ready);
+        }).catch(function(){status('تعذر تجهيز العمل دون اتصال هنا. بعد النشر، افتح التطبيق بالإنترنت مرة واحدة حتى تظهر رسالة الجاهزية.');});
+      })();
+    </script>
     {/* 🎬 REVEAL-SAFETY GUARD — ships HERE, in the scaffold, on purpose.
         It used to be string-injected into this file at build time by
         astro-build-runner, which string-matched the closing body tag and took the

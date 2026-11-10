@@ -7,31 +7,32 @@
 
 ## User Preferences
 - Target audience: Yemen water project operators
-- Must work offline-first for all core operations
+- Core operations should work offline-first
 - Professional, easy-to-use, fast
-- Expects login/auth functionality active and accessible from menus
-- New entry inputs (subscriber, invoice, expense, cycle) must be available from all relevant menus and interfaces — not buried
-- User prioritizes **facilitating entry inputs and menus** (top improvement priority) — make them easier and faster
-- Light and dark modes should have clear, appropriately readable colors when switching between them
+- Login/auth functionality should be active and accessible from menus
+- New subscriber, invoice, expense, and cycle entry should be accessible from relevant menus and interfaces, not buried
+- Prioritize making entry and menus easier and faster
+- Light and dark modes should remain clearly readable
 
 ## Tech Stack
-- **Flutter + Dart** (mobile app — pending build)
-- **SQLite / sqflite** (local DB)
-- **Material 3**, **RTL** layout
-- **Astro** (current deliverable: web landing page)
+- **Flutter + Dart**: planned mobile app
+- **SQLite / sqflite**: planned local database
+- **Material 3**, **RTL**
+- **Astro**: current web deliverable
 - **Schema.org SoftwareApplication** markup for SEO
 
 ## Current Deliverable
-- Web landing page (not the Flutter app)
+- Web landing page, not the Flutter app
 - Pages: `src/pages/index.astro`, `src/pages/new-invoice.astro`, `src/pages/new-subscriber.astro`, `src/pages/new-expense.astro`
 - Components: `src/components/Header.astro`, `src/components/Footer.astro`
-- Auth: `src/components/auth/KleapAuth.tsx` — exports `UserButton` integrated in Header for login/menu access
-- Section anchors on index: `#subscribers`, `#invoices`, `#expenses`, `#cycles`
+- Auth: `src/components/auth/KleapAuth.tsx` — exports `UserButton`, integrated in Header
+- Index section anchors: `#subscribers`, `#invoices`, `#expenses`, `#cycles`
+- Offline-related web files: `public/water-offline.js`, `src/layouts/Base.astro`; the script includes browser-cache storage for same-origin pages/resources
 
 ## Notes
-- Modal helpers in index.astro: `openSubModal`, `openInvModal`, `openExpModal`, `openCycleModal`, plus `save*` handlers — keep all wired up across menus
+- Index modal helpers: `openSubModal`, `openInvModal`, `openExpModal`, `openCycleModal`, and corresponding `save*` handlers; keep wired across menus
 - Theme button (`theme-btn`, `toggleTheme()`) lives in Header; preserve when editing
-- **Header rule**: pages must use the shared `<Header />` component ONLY — never duplicate a hardcoded `<header>` block in a page (causes duplicate navigation bars when both render and drift). Remove any hardcoded `<header>` from individual pages
-- Keep auth integration consistent when adding new pages
-- Focus improvements on input fields & menu accessibility — reduce friction to add subscriber/invoice/expense/cycle
-- Flutter app build remains the next pending task
+- Pages must use the shared `<Header />`; do not duplicate a hardcoded `<header>` in individual pages
+- Keep auth integration consistent on new pages
+- Focus improvements on entry fields and menu accessibility
+- Flutter app build remains pending

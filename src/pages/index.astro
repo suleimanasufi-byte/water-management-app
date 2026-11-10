@@ -148,7 +148,10 @@ import { AuthGate } from "../components/auth/KleapAuth";
         <button onclick="exportBackup()" class="px-5 py-3 rounded-2xl border border-border bg-muted font-black">حفظ نسخة في ملف على الهاتف</button>
         <label class="px-5 py-3 rounded-2xl border border-border bg-muted font-black cursor-pointer">استعادة نسخة<input type="file" id="restore-file" accept=".json" class="hidden" onchange="restoreBackup(this)" /></label>
       </div>
-      <p class="mt-3 text-sm text-muted-foreground">تُحفظ المدخلات حاليًا داخل متصفح هذا الجهاز، ولا تُرسل إلى سحابة. لحفظها في ملف مستقل على أندرويد، اضغط «حفظ نسخة في ملف على الهاتف». الملف نسخة وقت الحفظ ولا يتحدث تلقائيًا؛ احفظ نسخة جديدة بعد التعديلات المهمة. فتح التطبيق من جديد دون إنترنت يتطلب تجهيز نسخة تدعم ذلك.</p>
+      <p class="mt-3 text-sm text-muted-foreground">تُحفظ بيانات المشروع والمدخلات على هذا الهاتف ولا تُرسل إلى سحابة. بعد النشر، افتح التطبيق مرة واحدة بالإنترنت وانتظر رسالة الجاهزية أدناه؛ بعدها يمكنك فتحه وإدارة المشتركين والفواتير والمصروفات والدورات والتقارير دون اتصال. من قائمة المتصفح أضفه إلى الشاشة الرئيسية. تسجيل الدخول والمشاركة الخارجية يحتاجان الإنترنت. احتفظ بنسخة مستقلة عبر «حفظ نسخة في ملف على الهاتف»؛ حذف بيانات المتصفح أو التطبيق يحذف السجلات المحلية، والنسخة المصدّرة لا تتحدث تلقائيًا.</p>
+      <p id="offline-status" role="status" class="mt-3 text-sm font-bold">جارٍ التحقق من جاهزية العمل دون اتصال…</p>
+      <button id="protect-local-data" class="btn mt-3" type="button">حماية حفظ البيانات على الهاتف</button>
+      <p id="local-storage-status" role="status" class="mt-2 text-sm"></p>
       <p id="backup-info" class="mt-3 text-sm font-bold text-muted-foreground"></p>
     </section>
 
@@ -531,7 +534,13 @@ function toast(m){const t=document.createElement('div');t.textContent=m;t.style.
 if($('theme-btn'))$('theme-btn').onclick=()=>{const h=document.documentElement;const dark=h.dataset.theme!=='dark';h.dataset.theme=dark?'dark':'light';h.classList.toggle('dark',dark);$('theme-btn').textContent=dark?'☀️ فاتح':'🌙 داكن'};
 document.documentElement.dataset.theme=document.documentElement.classList.contains('dark')?'dark':'light';
 const darkCSS=document.createElement('style');darkCSS.textContent=`html[data-theme="dark"]{--background:#0d0c14;--foreground:#eceaf4;--card:#151421;--muted:#201d31;--border:#2a2741}html[data-theme="light"]{--background:#f4f7fa;--foreground:#0f172a;--card:#ffffff;--muted:#e8eff5;--border:#d5e0ea}.text-muted-foreground{color:#64748b}html[data-theme="dark"] .text-muted-foreground{color:#9d98b0}`;document.head.appendChild(darkCSS);
-window.addEventListener('offline',()=>toast('انقطع الإنترنت. يمكنك متابعة الصفحة المفتوحة؛ احفظ نسخة من بياناتك في ملف على الهاتف.'));
+window.addEventListener('offline',()=>toast('أنت دون اتصال؛ تستمر إدارة البيانات المحفوظة على الهاتف.'));
+if(window.waterOfflineStatus)$('offline-status').textContent=window.waterOfflineStatus;
+$('protect-local-data').onclick=async()=>{
+  const out=$('local-storage-status');
+  if(!navigator.storage?.persist){out.textContent='المتصفح لا يتيح حماية التخزين؛ احفظ نسخة احتياطية مستقلة.';return;}
+  try{const granted=await navigator.storage.persist();out.textContent=granted?'تم منح حماية التخزين من الإزالة التلقائية. لا تحذف بيانات المتصفح، واحتفظ بنسخة احتياطية.':'لم يمنح المتصفح الحماية؛ تبقى البيانات محليًا، لكن احفظ نسخة احتياطية بانتظام.';}catch{out.textContent='تعذر تفعيل الحماية. احفظ نسخة احتياطية مستقلة.';}
+};
 Object.assign(window,{scrollToId,renderAll,renderSubs,renderInvs,renderReport,openSubModal,saveSub,delSub,newInvoiceFor,openInvModal,invAuto,invLive,saveInv,delInv,openExpModal,saveExp,delExp,openCycleModal,saveCycle,closeCycle,reopenCycle,delCycle,closeModal,statement,viewInvoice,printInvoice,shareInvoice,shareReport,exportCSV,exportSubs,exportInvs,saveSettings,exportBackup,restoreBackup,renderReportTabs,printReport,printStatement,selectReport});
 function selectReport(tab){repTab=tab;renderReportTabs();renderReport()}
 function printReport(){$('print-area').innerHTML='<h2>'+DB.settings.name+' — '+repTab+'</h2>'+$('report-body').innerHTML;window.print()}
